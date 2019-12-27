@@ -1,4 +1,5 @@
 import pygame as py
+import menu
 from random import randint
 from time import localtime
 
@@ -8,12 +9,17 @@ with open("settings.txt") as file:
     settings = file.read()
     settings = settings.split("\n")
 
-keys = py.key.get_pressed()
 windowSize = int(settings[3][12:])
 GridSize = int(settings[4][10:])
 FPS = int(settings[1][5:])
 DELAY = int(settings[2][6:])
 PLAYERNAME = settings[5][12:]
+font = py.font.SysFont("Arial", 85)
+_TITLE_TEXT_ = font.render("SNAKE GAME", True, (255, 255, 255))
+_TITLE_TEXT_POS = _TITLE_TEXT_.get_rect()
+_TITLE_TEXT_POS.center = (windowSize // 2, 85 // 2)
+_PLAY_BUTTON_ = menu.Button(150, 225, 450, 100, "Play", 56, (50, 50, 50))
+
 
 class Fruit:
     def __init__(self):
@@ -24,7 +30,7 @@ class Fruit:
 class Snake:
     def __init__(self):
         self.x, self.y = (10, 10)
-        self.direct: list = [0, 0]                              # [x, y]
+        self.direct: list = [0, 0]  # [x, y]
         self.body = [(self.x, self.y), (self.x, self.y + 1)]
         self.len: int = len(self.body)
 
@@ -76,6 +82,7 @@ class Snake:
 
 class Game:
     def __init__(self):
+        self.menu: bool = True
         self.active: bool = True
         self.winS: int = windowSize
         self.win: py.Surface = py.display.set_mode((self.winS, self.winS))
@@ -83,7 +90,7 @@ class Game:
         self.snake = Snake()
         self.fruit = Fruit()
         self.score: int = 0
-        self.font = py.font.SysFont("Arial", 35)
+        self.font = py.font.SysFont("Arial", 60)
         self.GameoverText = self.font.render("Game0ver", True, (255, 255, 255))
         self.FPS = FPS
         self.DELAY = DELAY
@@ -95,10 +102,20 @@ global var
 var = Game()
 
 
+def Menu():
+    var.win.fill((0, 0, 0))
+    py.time.delay(var.DELAY)
+    var.win.blit(_TITLE_TEXT_, _TITLE_TEXT_POS)
+    _PLAY_BUTTON_.Draw(var.win)
+    py.display.update()
+    if _PLAY_BUTTON_.OnClick():
+        var.menu = False
+
+
 def Close():
     for e in py.event.get():
         if e.type == py.QUIT:
-            var.active = False
+            var.active = not var.active
 
 
 def Game0ver():
@@ -109,7 +126,8 @@ def Game0ver():
     py.display.set_caption("Game0ver")
     py.display.update()
     with open("scores.txt", "a") as f:
-        f.write(f" Player \"{var.PlAYER}\" Scored {var.score} at {localtime()[3]}:{localtime()[4]} {localtime()[1]}. {localtime()[2]}. {localtime()[0]}. \n")
+        f.write(
+            f" Player \"{var.PlAYER}\" Scored {var.score} at {localtime()[3]}:{localtime()[4]} {localtime()[1]}. {localtime()[2]}. {localtime()[0]}. \n")
     py.time.wait(2000)
     var = Game()
 
@@ -129,7 +147,7 @@ def Fruitf():
         while FruitInBody():
             var.fruit = Fruit()
         var.snake.AddBlock()
-        var.score += 10*FPS
+        var.score += 10 * FPS
         py.display.set_caption(f"FAKE SNAKE Score: {var.score}")
 
 
@@ -157,7 +175,6 @@ def logic():
             Game0ver()
             break
 
-
 def DrawGrid():
     for i in range(var.winS // var.GridSize + 1):
         py.draw.line(var.win, (255, 255, 255), (i * var.GridSize, 0), (i * var.GridSize, var.winS))
@@ -175,11 +192,16 @@ def Draw():
 def Main():
     Clock = py.time.Clock()
     while var.active:
-        py.time.delay(var.DELAY)
-        Close()
-        logic()
-        Draw()
-        Clock.tick(var.FPS)
+        if not var.menu:
+            py.time.delay(var.DELAY)
+            Close()
+            logic()
+            Draw()
+            Clock.tick(var.FPS)
+        else:
+            Close()
+            Menu()
+            Clock.tick(30)
 
 
 if __name__ == "__main__":
