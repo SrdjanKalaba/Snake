@@ -29,3 +29,21 @@ class Button:
         if py.mouse.get_pressed()[0] and self.x + self.width > Mx > self.x and self.y + self.height > My > self.y:
             return True
         return False
+
+
+class Slider:
+    def __init__(self, x: int, y: int, w: int, h: int, Sh: int, Sw: int, value: int):
+        self.x = x
+        self.y = y
+        self.w = w
+        self.h = h
+        self.Sh = Sh
+        self.Sw = Sw
+        self.val = value
+
+    def Draw(self, Sur: py.Surface):
+        py.draw.rect(Sur, (40, 40, 40), (self.x, self.y, self.w, self.h))
+        py.draw.rect(Sur, (40, 40, 40), (self.x, self.y, self.w, self.h), 6)
+
+    def Move(self):
+        pass

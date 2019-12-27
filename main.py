@@ -15,10 +15,14 @@ FPS = int(settings[1][5:])
 DELAY = int(settings[2][6:])
 PLAYERNAME = settings[5][12:]
 font = py.font.SysFont("Arial", 85)
+settings_fonts = py.font.SysFont("Arial", 45)
 _TITLE_TEXT_ = font.render("SNAKE GAME", True, (255, 255, 255))
 _TITLE_TEXT_POS = _TITLE_TEXT_.get_rect()
 _TITLE_TEXT_POS.center = (windowSize // 2, 85 // 2)
-_PLAY_BUTTON_ = menu.Button(windowSize//2 - 225, 150, 450, 100, "Play", 56, (50, 50, 50))
+_PLAY_BUTTON_ = menu.Button(windowSize // 2 - 225, 150, 450, 100, "Play", 56, (50, 50, 50))
+_SETTING_BUTTON_ = menu.Button(windowSize // 2 - 225, 300, 450, 100, "Settings", 56, (50, 50, 50))
+_FPS_TEXT_ = settings_fonts.render(f"FPS: {FPS}", True, (255, 255, 255))
+_FPS_SLIDER_ = menu.Slider(160, 14, windowSize-170, 48, 48, 48, FPS)
 
 
 class Fruit:
@@ -36,6 +40,7 @@ class Fruit:
             self.drawenRadius -= 1
         else:
             self.drawenRadius += 1
+
 
 class Snake:
     def __init__(self):
@@ -92,10 +97,11 @@ class Snake:
 
 class Game:
     def __init__(self):
+        self.settings: bool = False
         self.menu: bool = True
         self.active: bool = True
         self.winS: int = windowSize
-        self.win: py.Surface = py.display.set_mode((self.winS, self.winS))
+        self.win: py.Surface = py.display.set_mode((self.winS, self.winS+50))
         self.GridSize: int = GridSize
         self.snake = Snake()
         self.fruit = Fruit()
@@ -105,20 +111,30 @@ class Game:
         self.FPS = FPS
         self.DELAY = DELAY
         self.PlAYER = PLAYERNAME
-        py.display.set_caption(f"FAKE SNAKE Score: {self.score}")
-
+        py.display.set_caption("SNAKE GAME")
 
 global var  # Create globals variables
 var = Game()
-
+_SCORE_TEXT_ = settings_fonts.render(f"SCORE: {var.score}", True, (255, 255, 255))
 
 def Menu():
     var.win.fill((0, 0, 0))
     var.win.blit(_TITLE_TEXT_, _TITLE_TEXT_POS)
     _PLAY_BUTTON_.Draw(var.win)
+    _SETTING_BUTTON_.Draw(var.win)
     py.display.update()
     if _PLAY_BUTTON_.OnClick():
         var.menu = False
+    elif _SETTING_BUTTON_.OnClick():
+        var.settings = True
+        var.menu = False
+
+
+def settings():
+    var.win.fill((0, 0, 0))
+    var.win.blit(_FPS_TEXT_, (10, 10))
+    _FPS_SLIDER_.Draw(var.win)
+    py.display.update()
 
 
 def Close():
@@ -149,13 +165,14 @@ def FruitInBody():  # check if fruit spawn in body of snake
 
 
 def FruitEat():
+    global _SCORE_TEXT_
     if var.snake.x == var.fruit.x and var.snake.y == var.fruit.y:
         var.fruit = Fruit()
         while FruitInBody():
             var.fruit = Fruit()
         var.snake.AddBlock()
         var.score += 10 * FPS
-        py.display.set_caption(f"FAKE SNAKE Score: {var.score}")
+        _SCORE_TEXT_ = settings_fonts.render(f"SCORE: {var.score}", True, (255, 255, 255))
 
 
 def logic():
@@ -189,6 +206,8 @@ def ReDrawScreen():
     # Drawing.DrawGrid()
     var.fruit.draw(var.win)
     DrawSnake()
+    py.draw.rect(var.win, (30, 30, 30), (0, var.winS, var.winS, 55))
+    var.win.blit(_SCORE_TEXT_, (0, var.winS))
     py.display.update()
 
 
@@ -201,6 +220,9 @@ def Main():
             Close()
             Menu()
             Clock.tick(60)
+        elif var.settings:
+            Close()
+            settings()
         else:
             py.time.delay(var.DELAY)
             Close()
