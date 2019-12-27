@@ -18,14 +18,24 @@ font = py.font.SysFont("Arial", 85)
 _TITLE_TEXT_ = font.render("SNAKE GAME", True, (255, 255, 255))
 _TITLE_TEXT_POS = _TITLE_TEXT_.get_rect()
 _TITLE_TEXT_POS.center = (windowSize // 2, 85 // 2)
-_PLAY_BUTTON_ = menu.Button(150, 225, 450, 100, "Play", 56, (50, 50, 50))
+_PLAY_BUTTON_ = menu.Button(windowSize//2 - 225, 150, 450, 100, "Play", 56, (50, 50, 50))
 
 
 class Fruit:
     def __init__(self):
         self.x = randint(0, windowSize // GridSize - 1)
         self.y = randint(0, windowSize // GridSize - 1)
+        self.r = GridSize // 2
+        self.drawenRadius = self.r
 
+    def draw(self, SUR):
+        py.draw.circle(SUR, (0, 255, 0),
+                       (self.x * GridSize + GridSize // 2 + 1, self.y * GridSize + GridSize // 2 + 1),
+                       self.drawenRadius)
+        if self.drawenRadius == self.r and self.drawenRadius >= 1:
+            self.drawenRadius -= 1
+        else:
+            self.drawenRadius += 1
 
 class Snake:
     def __init__(self):
@@ -98,13 +108,12 @@ class Game:
         py.display.set_caption(f"FAKE SNAKE Score: {self.score}")
 
 
-global var
+global var  # Create globals variables
 var = Game()
 
 
 def Menu():
     var.win.fill((0, 0, 0))
-    py.time.delay(var.DELAY)
     var.win.blit(_TITLE_TEXT_, _TITLE_TEXT_POS)
     _PLAY_BUTTON_.Draw(var.win)
     py.display.update()
@@ -115,7 +124,7 @@ def Menu():
 def Close():
     for e in py.event.get():
         if e.type == py.QUIT:
-            var.active = not var.active
+            var.active = False
 
 
 def Game0ver():
@@ -127,21 +136,19 @@ def Game0ver():
     py.display.update()
     with open("scores.txt", "a") as f:
         f.write(
-            f" Player \"{var.PlAYER}\" Scored {var.score} at {localtime()[3]}:{localtime()[4]} {localtime()[1]}. {localtime()[2]}. {localtime()[0]}. \n")
+            f' Player {var.PlAYER!r} Scored {var.score} at {localtime()[3]}:{localtime()[4]} {localtime()[1]}. {localtime()[2]}. {localtime()[0]}. \n')
     py.time.wait(2000)
     var = Game()
 
 
-def FruitInBody():
-    IsIt = False
+def FruitInBody():  # check if fruit spawn in body of snake
     for i in range(0, len(var.snake.body)):
         if var.snake.body[i][0] == var.fruit.x or var.snake.body[i][1] == var.fruit.y:
-            IsIt = True
-            break
-    return IsIt
+            return True
+        return False
 
 
-def Fruitf():
+def FruitEat():
     if var.snake.x == var.fruit.x and var.snake.y == var.fruit.y:
         var.fruit = Fruit()
         while FruitInBody():
@@ -151,9 +158,14 @@ def Fruitf():
         py.display.set_caption(f"FAKE SNAKE Score: {var.score}")
 
 
-def DrawFruit():
-    py.draw.circle(var.win, (0, 255, 0), (var.fruit.x * var.GridSize + var.GridSize // 2 + 1, var.fruit.y * var.GridSize
-                                          + var.GridSize // 2 + 1), GridSize // 2)
+def logic():
+    FruitEat()
+    var.snake.Move()
+    for i in range(1, len(var.snake.body)):
+        if (var.snake.body[0][0] == var.snake.body[i][0] and var.snake.body[0][1] == var.snake.body[i][1]) and len(
+                var.snake.body) != 2:
+            Game0ver()
+            break
 
 
 def DrawSnake():
@@ -166,42 +178,35 @@ def DrawSnake():
                          (p[0] * var.GridSize + 1, p[1] * var.GridSize + 1, var.GridSize - 1, var.GridSize - 1))
 
 
-def logic():
-    Fruitf()
-    var.snake.Move()
-    for i in range(1, len(var.snake.body)):
-        if (var.snake.body[0][0] == var.snake.body[i][0] and var.snake.body[0][1] == var.snake.body[i][1]) and len(
-                var.snake.body) != 2:
-            Game0ver()
-            break
-
 def DrawGrid():
     for i in range(var.winS // var.GridSize + 1):
         py.draw.line(var.win, (255, 255, 255), (i * var.GridSize, 0), (i * var.GridSize, var.winS))
         py.draw.line(var.win, (255, 255, 255), (0, i * var.GridSize), (var.winS, i * var.GridSize))
 
 
-def Draw():
+def ReDrawScreen():
     var.win.fill((0, 0, 0))
-    # DrawGrid()
-    DrawFruit()
+    # Drawing.DrawGrid()
+    var.fruit.draw(var.win)
     DrawSnake()
     py.display.update()
 
 
 def Main():
     Clock = py.time.Clock()
+    if windowSize < 450:
+        var.active = False
     while var.active:
-        if not var.menu:
+        if var.menu:
+            Close()
+            Menu()
+            Clock.tick(60)
+        else:
             py.time.delay(var.DELAY)
             Close()
             logic()
-            Draw()
+            ReDrawScreen()
             Clock.tick(var.FPS)
-        else:
-            Close()
-            Menu()
-            Clock.tick(30)
 
 
 if __name__ == "__main__":

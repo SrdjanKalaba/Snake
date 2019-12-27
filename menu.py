@@ -25,11 +25,7 @@ class Button:
         Window.blit(self.TEXT, self._TEXT_POS_)
 
     def OnClick(self):
-        for e in py.event.get():
-            if e.type == py.MOUSEBUTTONDOWN:
-                if e.button == 1:
-                    return True
-                else:
-                    return False
-            else:
-                return False
+        Mx, My = py.mouse.get_pos()
+        if py.mouse.get_pressed()[0] and self.x + self.width > Mx > self.x and self.y + self.height > My > self.y:
+            return True
+        return False
