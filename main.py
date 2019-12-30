@@ -27,7 +27,7 @@ _WinS_TEXT_ = settings_fonts.render(f"WinS: {windowSize}", True, (255, 255, 255)
 _FPS_SLIDER_ = menu.Slider(160, 14, windowSize - 170, 48, 48, 48, FPS, 5, 60)
 _WINS_SLIDER_ = menu.Slider(220, 76, windowSize - 230, 48, 48, 48, windowSize, 750, 1500)
 _BACK_BUTTON_ = menu.Button(0, windowSize - 48, 250, 95, "Back", 56, (50, 50, 50))
-_PLAYER_NAME_ = menu.Text_BOX(220, 152, 100, 55, PLAYERNAME, 45)
+_PLAYER_NAME_BOX_ = menu.Text_BOX(220, 152, 100, 55, PLAYERNAME, 45)
 
 
 class Fruit:
@@ -140,32 +140,33 @@ def Menu():
 def settings():
     Clock = py.time.Clock()
     global _FPS_TEXT_, _WinS_TEXT_, _BACK_BUTTON_, _SETTING_BUTTON_, _PLAY_BUTTON_, _TITLE_TEXT_POS
-    global _WINS_SLIDER_, _FPS_SLIDER_
+    global _WINS_SLIDER_, _FPS_SLIDER_, _PLAYER_NAME_BOX_
     var.win.fill((0, 0, 0))
     var.win.blit(_FPS_TEXT_, (10, 10))
     var.win.blit(_WinS_TEXT_, (10, 76))
 
     _FPS_SLIDER_.Move()
     _WINS_SLIDER_.Move()
-    _PLAYER_NAME_.Input()
+    _PLAYER_NAME_BOX_.Input()
     var.win.blit(_PLAYER_NAME_TEXT_, (10, 152))
     var.FPS = round(_FPS_SLIDER_.val)
     var.winS = round(_WINS_SLIDER_.val)
 
-    _PLAYER_NAME_.Draw(var.win)
+    _PLAYER_NAME_BOX_.Draw(var.win)
     _BACK_BUTTON_.Draw(var.win)
     _WINS_SLIDER_.Draw(var.win)
     _FPS_SLIDER_.Draw(var.win)
     if _BACK_BUTTON_.OnClick():
-        py.display.set_mode((var.winS, var.winS))
+        py.display.set_mode((var.winS, var.winS+50))
         # reload positons
         _TITLE_TEXT_POS = _TITLE_TEXT_.get_rect()
         _TITLE_TEXT_POS.center = (var.winS // 2, 85 // 2)
         _PLAY_BUTTON_ = menu.Button(var.winS // 2 - 225, 150, 450, 100, "Play", 56, (50, 50, 50))
         _SETTING_BUTTON_ = menu.Button(var.winS // 2 - 225, 300, 450, 100, "Settings", 56, (50, 50, 50))
-        _BACK_BUTTON_ = menu.Button(0, var.winS - 95, 250, 95, "Back", 56, (50, 50, 50))
-        _FPS_SLIDER_ = menu.Slider(160, 14, var.winS - 170, 48, 48, 48, FPS, 5, 60)
+        _BACK_BUTTON_ = menu.Button(0, var.winS - 48, 250, 95, "Back", 56, (50, 50, 50))
+        _FPS_SLIDER_ = menu.Slider(160, 14, var.winS - 170, 48, 48, 48, var.FPS, 5, 60)
         _WINS_SLIDER_ = menu.Slider(220, 76, var.winS - 230, 48, 48, 48, var.winS, 750, 1500)
+        _PLAYER_NAME_BOX_ = menu.Text_BOX(220, 152, 100, 55, PLAYERNAME, 45)
         with open("settings.txt", "w") as f:
             f.write(f"""
 FPS: {var.FPS}
@@ -208,8 +209,8 @@ def Game0ver():
 
 
 def FruitInBody():  # check if fruit spawn in body of snake
-    for i in range(0, len(var.snake.body)):
-        if var.snake.body[i][0] == var.fruit.x or var.snake.body[i][1] == var.fruit.y:
+    for part in var.snake.body:
+        if var.fruit.x == part[0] or var.fruit.y == part[1]:
             return True
         return False
 
@@ -218,8 +219,10 @@ def FruitEat():
     global _SCORE_TEXT_
     if var.snake.x == var.fruit.x and var.snake.y == var.fruit.y:
         var.fruit = Fruit()
-        while FruitInBody():
+        while True:
             var.fruit = Fruit()
+            if not FruitInBody():
+                break
         var.snake.AddBlock()
         var.score += 10 * FPS
         _SCORE_TEXT_ = settings_fonts.render(f"SCORE: {var.score}", True, (255, 255, 255))
