@@ -55,3 +55,40 @@ class Slider:
             self.val = (Mx - self.x) / self.w * self.MaxVal
             if self.val < self.MinVal:
                 self.val = self.MinVal
+
+
+class Text_BOX:
+    def __init__(self, x: int, y: int, w: int, h: int, text: str, font_size: int):
+        self.x = x
+        self.y = y
+        self.w = w
+        self.h = h
+        self.text = text
+        self.font = py.font.SysFont("Arial", font_size)
+        self._TEXT_ = self.font.render(self.text, True, (0, 0, 0))
+
+    def Draw(self, Sur: py.Surface):
+        py.draw.rect(Sur, (255, 255, 255), (self.x, self.y, self.w, self.h))
+        py.draw.rect(Sur, (0, 0, 0), (self.x, self.y, self.w, self.h), 4)
+        Sur.blit(self._TEXT_, (self.x+5, self.y))
+        if self._TEXT_.get_width() > self.w:
+            self.w = self._TEXT_.get_width() + 10
+
+    def Input(self):
+        Mx, My = py.mouse.get_pos()
+        keys = py.key.get_pressed()
+        if self.x + self.w > Mx > self.x and self.y + self.h > My > self.y:
+            for i in range(97, 123):
+                if keys[i]:
+                    if keys[304]:  # SHIFT
+                        self.text += chr(i).upper()
+                    else:
+                        self.text += chr(i)
+            if keys[8]:
+                try:
+                    self.text = self.text[:-1]
+                finally:
+                    pass
+            elif keys[32]:  # SPACE
+                self.text += " "
+            self._TEXT_ = self.font.render(self.text, True, (0, 0, 0))

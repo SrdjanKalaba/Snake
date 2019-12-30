@@ -22,10 +22,12 @@ _TITLE_TEXT_POS.center = (windowSize // 2, 85 // 2)
 _PLAY_BUTTON_ = menu.Button(windowSize // 2 - 225, 150, 450, 100, "Play", 56, (50, 50, 50))
 _SETTING_BUTTON_ = menu.Button(windowSize // 2 - 225, 300, 450, 100, "Settings", 56, (50, 50, 50))
 _FPS_TEXT_ = settings_fonts.render(f"FPS: {FPS}", True, (255, 255, 255))
+_PLAYER_NAME_TEXT_ = settings_fonts.render("NAME: ", True, (255, 255, 255))
 _WinS_TEXT_ = settings_fonts.render(f"WinS: {windowSize}", True, (255, 255, 255))
 _FPS_SLIDER_ = menu.Slider(160, 14, windowSize - 170, 48, 48, 48, FPS, 5, 60)
 _WINS_SLIDER_ = menu.Slider(220, 76, windowSize - 230, 48, 48, 48, windowSize, 750, 1500)
 _BACK_BUTTON_ = menu.Button(0, windowSize - 48, 250, 95, "Back", 56, (50, 50, 50))
+_PLAYER_NAME_ = menu.Text_BOX(220, 152, 100, 55, PLAYERNAME, 45)
 
 
 class Fruit:
@@ -136,18 +138,24 @@ def Menu():
 
 
 def settings():
+    Clock = py.time.Clock()
     global _FPS_TEXT_, _WinS_TEXT_, _BACK_BUTTON_, _SETTING_BUTTON_, _PLAY_BUTTON_, _TITLE_TEXT_POS
     global _WINS_SLIDER_, _FPS_SLIDER_
     var.win.fill((0, 0, 0))
     var.win.blit(_FPS_TEXT_, (10, 10))
     var.win.blit(_WinS_TEXT_, (10, 76))
-    _FPS_SLIDER_.Draw(var.win)
+
     _FPS_SLIDER_.Move()
-    _BACK_BUTTON_.Draw(var.win)
-    _WINS_SLIDER_.Draw(var.win)
     _WINS_SLIDER_.Move()
+    _PLAYER_NAME_.Input()
+    var.win.blit(_PLAYER_NAME_TEXT_, (10, 152))
     var.FPS = round(_FPS_SLIDER_.val)
     var.winS = round(_WINS_SLIDER_.val)
+
+    _PLAYER_NAME_.Draw(var.win)
+    _BACK_BUTTON_.Draw(var.win)
+    _WINS_SLIDER_.Draw(var.win)
+    _FPS_SLIDER_.Draw(var.win)
     if _BACK_BUTTON_.OnClick():
         py.display.set_mode((var.winS, var.winS))
         # reload positons
@@ -155,14 +163,28 @@ def settings():
         _TITLE_TEXT_POS.center = (var.winS // 2, 85 // 2)
         _PLAY_BUTTON_ = menu.Button(var.winS // 2 - 225, 150, 450, 100, "Play", 56, (50, 50, 50))
         _SETTING_BUTTON_ = menu.Button(var.winS // 2 - 225, 300, 450, 100, "Settings", 56, (50, 50, 50))
-        _BACK_BUTTON_ = menu.Button(0, var.winS - 48, 250, 95, "Back", 56, (50, 50, 50))
-        _FPS_SLIDER_ = menu.Slider(160, 14, windowSize - 170, 48, 48, 48, FPS, 5, 60)
-        _WINS_SLIDER_ = menu.Slider(220, 76, windowSize - 230, 48, 48, 48, windowSize, 750, 1500)
+        _BACK_BUTTON_ = menu.Button(0, var.winS - 95, 250, 95, "Back", 56, (50, 50, 50))
+        _FPS_SLIDER_ = menu.Slider(160, 14, var.winS - 170, 48, 48, 48, FPS, 5, 60)
+        _WINS_SLIDER_ = menu.Slider(220, 76, var.winS - 230, 48, 48, 48, var.winS, 750, 1500)
+        with open("settings.txt", "w") as f:
+            f.write(f"""
+FPS: {var.FPS}
+DELAY: {var.DELAY}
+WINDOWSIZE: {var.winS}
+GRIDSIZE: {var.GridSize}
+PLAYERNAME: {var.PlAYER}
+#DEAFULT SETTINGS ARE
+#FPS: 10
+#DELAY: 50
+#WINDOWSIZE: 750
+#GRIDSIZE: 25"""
+                    )
         var.settings = False
         var.menu = True
     _FPS_TEXT_ = settings_fonts.render(f"FPS: {var.FPS}", True, (255, 255, 255))
     _WinS_TEXT_ = settings_fonts.render(f"WinS: {var.winS}", True, (255, 255, 255))
     py.display.update()
+    Clock.tick(10)
 
 
 def Close():
