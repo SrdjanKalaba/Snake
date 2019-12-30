@@ -9,7 +9,6 @@ with open("settings.txt") as file:
     settings = file.read()
     settings = settings.split("\n")
 
-
 windowSize = int(settings[3][12:])
 GridSize = int(settings[4][10:])
 FPS = int(settings[1][5:])
@@ -23,8 +22,11 @@ _TITLE_TEXT_POS.center = (windowSize // 2, 85 // 2)
 _PLAY_BUTTON_ = menu.Button(windowSize // 2 - 225, 150, 450, 100, "Play", 56, (50, 50, 50))
 _SETTING_BUTTON_ = menu.Button(windowSize // 2 - 225, 300, 450, 100, "Settings", 56, (50, 50, 50))
 _FPS_TEXT_ = settings_fonts.render(f"FPS: {FPS}", True, (255, 255, 255))
+_WinS_TEXT_ = settings_fonts.render(f"WinS: {windowSize}", True, (255, 255, 255))
 _FPS_SLIDER_ = menu.Slider(160, 14, windowSize - 170, 48, 48, 48, FPS, 5, 60)
-_BACK_BUTTON_ = menu.Button()
+_WINS_SLIDER_ = menu.Slider(220, 76, windowSize - 230, 48, 48, 48, windowSize, 750, 1500)
+_BACK_BUTTON_ = menu.Button(0, windowSize - 48, 250, 95, "Back", 56, (50, 50, 50))
+
 
 class Fruit:
     def __init__(self):
@@ -134,13 +136,32 @@ def Menu():
 
 
 def settings():
-    global _FPS_TEXT_
+    global _FPS_TEXT_, _WinS_TEXT_, _BACK_BUTTON_, _SETTING_BUTTON_, _PLAY_BUTTON_, _TITLE_TEXT_POS
+    global _WINS_SLIDER_, _FPS_SLIDER_
     var.win.fill((0, 0, 0))
     var.win.blit(_FPS_TEXT_, (10, 10))
+    var.win.blit(_WinS_TEXT_, (10, 76))
     _FPS_SLIDER_.Draw(var.win)
     _FPS_SLIDER_.Move()
+    _BACK_BUTTON_.Draw(var.win)
+    _WINS_SLIDER_.Draw(var.win)
+    _WINS_SLIDER_.Move()
     var.FPS = round(_FPS_SLIDER_.val)
+    var.winS = round(_WINS_SLIDER_.val)
+    if _BACK_BUTTON_.OnClick():
+        py.display.set_mode((var.winS, var.winS))
+        # reload positons
+        _TITLE_TEXT_POS = _TITLE_TEXT_.get_rect()
+        _TITLE_TEXT_POS.center = (var.winS // 2, 85 // 2)
+        _PLAY_BUTTON_ = menu.Button(var.winS // 2 - 225, 150, 450, 100, "Play", 56, (50, 50, 50))
+        _SETTING_BUTTON_ = menu.Button(var.winS // 2 - 225, 300, 450, 100, "Settings", 56, (50, 50, 50))
+        _BACK_BUTTON_ = menu.Button(0, var.winS - 48, 250, 95, "Back", 56, (50, 50, 50))
+        _FPS_SLIDER_ = menu.Slider(160, 14, windowSize - 170, 48, 48, 48, FPS, 5, 60)
+        _WINS_SLIDER_ = menu.Slider(220, 76, windowSize - 230, 48, 48, 48, windowSize, 750, 1500)
+        var.settings = False
+        var.menu = True
     _FPS_TEXT_ = settings_fonts.render(f"FPS: {var.FPS}", True, (255, 255, 255))
+    _WinS_TEXT_ = settings_fonts.render(f"WinS: {var.winS}", True, (255, 255, 255))
     py.display.update()
 
 
