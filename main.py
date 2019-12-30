@@ -9,6 +9,7 @@ with open("settings.txt") as file:
     settings = file.read()
     settings = settings.split("\n")
 
+
 windowSize = int(settings[3][12:])
 GridSize = int(settings[4][10:])
 FPS = int(settings[1][5:])
@@ -22,8 +23,8 @@ _TITLE_TEXT_POS.center = (windowSize // 2, 85 // 2)
 _PLAY_BUTTON_ = menu.Button(windowSize // 2 - 225, 150, 450, 100, "Play", 56, (50, 50, 50))
 _SETTING_BUTTON_ = menu.Button(windowSize // 2 - 225, 300, 450, 100, "Settings", 56, (50, 50, 50))
 _FPS_TEXT_ = settings_fonts.render(f"FPS: {FPS}", True, (255, 255, 255))
-_FPS_SLIDER_ = menu.Slider(160, 14, windowSize-170, 48, 48, 48, FPS)
-
+_FPS_SLIDER_ = menu.Slider(160, 14, windowSize - 170, 48, 48, 48, FPS, 5, 60)
+_BACK_BUTTON_ = menu.Button()
 
 class Fruit:
     def __init__(self):
@@ -101,7 +102,7 @@ class Game:
         self.menu: bool = True
         self.active: bool = True
         self.winS: int = windowSize
-        self.win: py.Surface = py.display.set_mode((self.winS, self.winS+50))
+        self.win: py.Surface = py.display.set_mode((self.winS, self.winS + 50))
         self.GridSize: int = GridSize
         self.snake = Snake()
         self.fruit = Fruit()
@@ -113,9 +114,11 @@ class Game:
         self.PlAYER = PLAYERNAME
         py.display.set_caption("SNAKE GAME")
 
+
 global var  # Create globals variables
 var = Game()
 _SCORE_TEXT_ = settings_fonts.render(f"SCORE: {var.score}", True, (255, 255, 255))
+
 
 def Menu():
     var.win.fill((0, 0, 0))
@@ -131,9 +134,13 @@ def Menu():
 
 
 def settings():
+    global _FPS_TEXT_
     var.win.fill((0, 0, 0))
     var.win.blit(_FPS_TEXT_, (10, 10))
     _FPS_SLIDER_.Draw(var.win)
+    _FPS_SLIDER_.Move()
+    var.FPS = round(_FPS_SLIDER_.val)
+    _FPS_TEXT_ = settings_fonts.render(f"FPS: {var.FPS}", True, (255, 255, 255))
     py.display.update()
 
 

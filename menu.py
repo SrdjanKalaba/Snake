@@ -32,7 +32,7 @@ class Button:
 
 
 class Slider:
-    def __init__(self, x: int, y: int, w: int, h: int, Sh: int, Sw: int, value: int):
+    def __init__(self, x: int, y: int, w: int, h: int, Sh: int, Sw: int, value: int, valueMin: int, valueMax: int):
         self.x = x
         self.y = y
         self.w = w
@@ -40,10 +40,18 @@ class Slider:
         self.Sh = Sh
         self.Sw = Sw
         self.val = value
+        self.MaxVal = valueMax
+        self.MinVal = valueMin
 
     def Draw(self, Sur: py.Surface):
         py.draw.rect(Sur, (40, 40, 40), (self.x, self.y, self.w, self.h))
+        py.draw.rect(Sur, (255, 255, 255), (self.x, self.y, self.val / self.MaxVal * self.w, self.h))
         py.draw.rect(Sur, (40, 40, 40), (self.x, self.y, self.w, self.h), 6)
 
     def Move(self):
-        pass
+        mouse = py.mouse.get_pressed()
+        Mx, My = py.mouse.get_pos()
+        if mouse[0] and self.x + self.w > Mx > self.x and self.y + self.h > My > self.y:
+            self.val = (Mx - self.x) / self.w * self.MaxVal
+            if self.val < self.MinVal:
+                self.val = self.MinVal
