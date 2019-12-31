@@ -84,7 +84,7 @@ class Text_BOX:
                         self.text += chr(i).upper()
                     else:
                         self.text += chr(i)
-            if keys[8]:
+            if keys[8]:  # BACKSPACE
                 try:
                     self.text = self.text[:-1]
                 finally:

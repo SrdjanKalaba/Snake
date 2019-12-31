@@ -1,11 +1,11 @@
 import pygame as py
 import menu
 from random import randint
-from time import localtime
+from datetime import datetime
 
 py.init()
 
-with open("settings.txt") as file:
+with open("settings.txt", "r") as file:
     settings = file.read()
     settings = settings.split("\n")
 
@@ -13,7 +13,8 @@ windowSize = int(settings[3][12:])
 GridSize = int(settings[4][10:])
 FPS = int(settings[1][5:])
 DELAY = int(settings[2][6:])
-PLAYERNAME = settings[5][12:]
+Player_Name = settings[5][12:]
+
 font = py.font.SysFont("Arial", 85)
 settings_fonts = py.font.SysFont("Arial", 45)
 _TITLE_TEXT_ = font.render("SNAKE GAME", True, (255, 255, 255))
@@ -27,7 +28,7 @@ _WinS_TEXT_ = settings_fonts.render(f"WinS: {windowSize}", True, (255, 255, 255)
 _FPS_SLIDER_ = menu.Slider(160, 14, windowSize - 170, 48, 48, 48, FPS, 5, 60)
 _WINS_SLIDER_ = menu.Slider(220, 76, windowSize - 230, 48, 48, 48, windowSize, 750, 1500)
 _BACK_BUTTON_ = menu.Button(0, windowSize - 48, 250, 95, "Back", 56, (50, 50, 50))
-_PLAYER_NAME_BOX_ = menu.Text_BOX(220, 152, 100, 55, PLAYERNAME, 45)
+_PLAYER_NAME_BOX_ = menu.Text_BOX(220, 152, 100, 55, Player_Name, 45)
 
 
 class Fruit:
@@ -115,13 +116,22 @@ class Game:
         self.GameoverText = self.font.render("Game0ver", True, (255, 255, 255))
         self.FPS = FPS
         self.DELAY = DELAY
-        self.PlAYER = PLAYERNAME
+        self.PlAYER_NAME = Player_Name
         py.display.set_caption("SNAKE GAME")
 
 
-global var  # Create globals variables
-var = Game()
+var = Game()  # MAIN GAME VARIABLES
 _SCORE_TEXT_ = settings_fonts.render(f"SCORE: {var.score}", True, (255, 255, 255))
+
+
+def GoBack():
+    global var
+    keys = py.key.get_pressed()
+    if keys[py.K_ESCAPE]:
+        var.settings = False
+        var.menu = True
+        if not var.menu and not var.settings:
+            var = Game()
 
 
 def Menu():
@@ -157,7 +167,7 @@ def settings():
     _WINS_SLIDER_.Draw(var.win)
     _FPS_SLIDER_.Draw(var.win)
     if _BACK_BUTTON_.OnClick():
-        py.display.set_mode((var.winS, var.winS+50))
+        py.display.set_mode((var.winS, var.winS + 50))
         # reload positons
         _TITLE_TEXT_POS = _TITLE_TEXT_.get_rect()
         _TITLE_TEXT_POS.center = (var.winS // 2, 85 // 2)
@@ -166,14 +176,14 @@ def settings():
         _BACK_BUTTON_ = menu.Button(0, var.winS - 48, 250, 95, "Back", 56, (50, 50, 50))
         _FPS_SLIDER_ = menu.Slider(160, 14, var.winS - 170, 48, 48, 48, var.FPS, 5, 60)
         _WINS_SLIDER_ = menu.Slider(220, 76, var.winS - 230, 48, 48, 48, var.winS, 750, 1500)
-        _PLAYER_NAME_BOX_ = menu.Text_BOX(220, 152, 100, 55, PLAYERNAME, 45)
+        _PLAYER_NAME_BOX_ = menu.Text_BOX(220, 152, 100, 55, var.PlAYER_NAME, 45)
         with open("settings.txt", "w") as f:
             f.write(f"""
 FPS: {var.FPS}
 DELAY: {var.DELAY}
 WINDOWSIZE: {var.winS}
 GRIDSIZE: {var.GridSize}
-PLAYERNAME: {var.PlAYER}
+PLAYERNAME: {var.PlAYER_NAME}
 #DEAFULT SETTINGS ARE
 #FPS: 10
 #DELAY: 50
@@ -192,18 +202,18 @@ def Close():
     for e in py.event.get():
         if e.type == py.QUIT:
             var.active = False
+    GoBack()
 
 
 def Game0ver():
-    global var
+    global var, _SCORE_TEXT_
     Gameover = var.GameoverText.get_rect()
     Gameover.center = (var.winS // 2, var.winS // 2)
     var.win.blit(var.GameoverText, Gameover)
     py.display.set_caption("Game0ver")
     py.display.update()
-    with open("scores.txt", "a") as f:
-        f.write(
-            f' Player {var.PlAYER!r} Scored {var.score} at {localtime()[3]}:{localtime()[4]} {localtime()[1]}. {localtime()[2]}. {localtime()[0]}. \n')
+    with open("scores.txt", "w") as f:
+        f.write(f' Player {var.PlAYER_NAME!r} Scored {var.score} at {datetime.now().strftime("%H:%M %d/%m/%Y")}. \n')
     py.time.wait(2000)
     var = Game()
 
@@ -218,7 +228,6 @@ def FruitInBody():  # check if fruit spawn in body of snake
 def FruitEat():
     global _SCORE_TEXT_
     if var.snake.x == var.fruit.x and var.snake.y == var.fruit.y:
-        var.fruit = Fruit()
         while True:
             var.fruit = Fruit()
             if not FruitInBody():
@@ -231,9 +240,8 @@ def FruitEat():
 def logic():
     FruitEat()
     var.snake.Move()
-    for i in range(1, len(var.snake.body)):
-        if (var.snake.body[0][0] == var.snake.body[i][0] and var.snake.body[0][1] == var.snake.body[i][1]) and len(
-                var.snake.body) != 2:
+    for i, part in enumerate(var.snake.body):
+        if var.snake.x == part[0] and var.snake.y == part[1] and var.snake.len != 2 and i != 0:
             Game0ver()
             break
 
@@ -256,7 +264,7 @@ def DrawGrid():
 
 def ReDrawScreen():
     var.win.fill((0, 0, 0))
-    # Drawing.DrawGrid()
+    # DrawGrid()
     var.fruit.draw(var.win)
     DrawSnake()
     py.draw.rect(var.win, (30, 30, 30), (0, var.winS, var.winS, 55))
