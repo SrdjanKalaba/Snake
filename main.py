@@ -132,6 +132,7 @@ def GoBack():
         var.menu = True
         if not var.menu and not var.settings:
             var = Game()
+            _SCORE_TEXT_ = settings_fonts.render(f"SCORE: {var.score}", True, (255, 255, 255))
 
 
 def Menu():
@@ -161,6 +162,7 @@ def settings():
     var.win.blit(_PLAYER_NAME_TEXT_, (10, 152))
     var.FPS = round(_FPS_SLIDER_.val)
     var.winS = round(_WINS_SLIDER_.val)
+    var.PlAYER_NAME = _PLAYER_NAME_BOX_.text
 
     _PLAYER_NAME_BOX_.Draw(var.win)
     _BACK_BUTTON_.Draw(var.win)
