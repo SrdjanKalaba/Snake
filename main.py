@@ -125,14 +125,14 @@ _SCORE_TEXT_ = settings_fonts.render(f"SCORE: {var.score}", True, (255, 255, 255
 
 
 def GoBack():
-    global var
+    global var, _SCORE_TEXT_
     keys = py.key.get_pressed()
     if keys[py.K_ESCAPE]:
-        var.settings = False
-        var.menu = True
         if not var.menu and not var.settings:
             var = Game()
             _SCORE_TEXT_ = settings_fonts.render(f"SCORE: {var.score}", True, (255, 255, 255))
+        var.settings = False
+        var.menu = True
 
 
 def Menu():
