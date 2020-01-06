@@ -5,42 +5,64 @@ from datetime import datetime
 
 py.init()
 
-with open("settings.txt", "r") as file:
-    settings = file.read()
-    settings = settings.split("\n")
 
-windowSize = int(settings[3][12:])
-GridSize = int(settings[4][10:])
-FPS = int(settings[1][5:])
-DELAY = int(settings[2][6:])
-Player_Name = settings[5][12:]
+class Game:
+    def __init__(self):
+        try:
+            with open("settings.txt", "r") as file:
+                settings = file.read()
+                settings = settings.split("\n")
 
-font = py.font.SysFont("Arial", 85)
-settings_fonts = py.font.SysFont("Arial", 45)
-_TITLE_TEXT_ = font.render("SNAKE GAME", True, (255, 255, 255))
-_TITLE_TEXT_POS = _TITLE_TEXT_.get_rect()
-_TITLE_TEXT_POS.center = (windowSize // 2, 85 // 2)
-_PLAY_BUTTON_ = menu.Button(windowSize // 2 - 225, 150, 450, 100, "Play", 56, (50, 50, 50))
-_SETTING_BUTTON_ = menu.Button(windowSize // 2 - 225, 300, 450, 100, "Settings", 56, (50, 50, 50))
-_FPS_TEXT_ = settings_fonts.render(f"FPS: {FPS}", True, (255, 255, 255))
-_PLAYER_NAME_TEXT_ = settings_fonts.render("NAME: ", True, (255, 255, 255))
-_WinS_TEXT_ = settings_fonts.render(f"WinS: {windowSize}", True, (255, 255, 255))
-_FPS_SLIDER_ = menu.Slider(160, 14, windowSize - 170, 48, 48, 48, FPS, 5, 60)
-_WINS_SLIDER_ = menu.Slider(220, 76, windowSize - 230, 48, 48, 48, windowSize, 750, 1500)
-_BACK_BUTTON_ = menu.Button(0, windowSize - 48, 250, 95, "Back", 56, (50, 50, 50))
-_PLAYER_NAME_BOX_ = menu.Text_BOX(220, 152, 100, 55, Player_Name, 45)
+            self.winS = int(settings[3][12:])
+            self.GridSize = int(settings[4][10:])
+            self.FPS = int(settings[1][5:])
+            self.DELAY = int(settings[2][6:])
+            self.Player_Name = settings[5][12:]
+        except:
+            self.winS = 750
+            self.GridSize = 25
+            self.FPS = 10
+            self.DELAY = 50
+            self.Player_Name = "ERR"
+
+        self.font = py.font.SysFont("Arial", 85)
+        self.settings_fonts = py.font.SysFont("Arial", 45)
+        self.TITLE_TEXT = self.font.render("SNAKE GAME", True, (255, 255, 255))
+        self.TITLE_TEXT_POS = self.TITLE_TEXT.get_rect()
+        self.TITLE_TEXT_POS.center = (self.winS // 2, 85 // 2)
+        self.PLAY_BUTTON = menu.Button(self.winS // 2 - 225, 150, 450, 100, "Play", 56, (50, 50, 50))
+        self.SETTING_BUTTON = menu.Button(self.winS // 2 - 225, 300, 450, 100, "Settings", 56, (50, 50, 50))
+        self.FPS_TEXT = self.settings_fonts.render(f"FPS: {self.FPS}", True, (255, 255, 255))
+        self.PLAYER_NAME_TEXT = self.settings_fonts.render("NAME: ", True, (255, 255, 255))
+        self.WinS_TEXT = self.settings_fonts.render(f"WinS: {self.winS}", True, (255, 255, 255))
+        self.FPS_SLIDER = menu.Slider(160, 14, self.winS - 170, 48, 48, 48, self.FPS, 5, 60)
+        self.WINS_SLIDER = menu.Slider(220, 76, self.winS - 230, 48, 48, 48, self.winS, 750, 1500)
+        self.BACK_BUTTON = menu.Button(0, self.winS - 48, 250, 95, "Back", 56, (50, 50, 50))
+        self.PLAYER_NAME_BOX = menu.Text_BOX(220, 152, 100, 55, self.Player_Name, 45)
+        self.settings: bool = False
+        self.menu: bool = True
+        self.active: bool = True
+        self.win: py.Surface = py.display.set_mode((self.winS, self.winS + 50))
+        self.score: int = 0
+        self.SCORE_TEXT = self.settings_fonts.render(f"SCORE: {self.score}", True, (255, 255, 255))
+        self.font = py.font.SysFont("Arial", 60)
+        self.GameoverText = self.font.render("Game0ver", True, (255, 255, 255))
+        py.display.set_caption("SNAKE GAME")
+
+
+var = Game()  # MAIN GAME VARIABLES
 
 
 class Fruit:
     def __init__(self):
-        self.x = randint(0, windowSize // GridSize - 1)
-        self.y = randint(0, windowSize // GridSize - 1)
-        self.r = GridSize // 2
+        self.x = randint(0, var.winS // var.GridSize - 1)
+        self.y = randint(0, var.winS // var.GridSize - 1)
+        self.r = var.GridSize // 2
         self.drawenRadius = self.r
 
     def draw(self, SUR):
         py.draw.circle(SUR, (0, 255, 0),
-                       (self.x * GridSize + GridSize // 2 + 1, self.y * GridSize + GridSize // 2 + 1),
+                       (self.x * var.GridSize + var.GridSize // 2 + 1, self.y * var.GridSize + var.GridSize // 2 + 1),
                        self.drawenRadius)
         if self.drawenRadius == self.r and self.drawenRadius >= 1:
             self.drawenRadius -= 1
@@ -64,7 +86,7 @@ class Snake:
             self.body[len(self.body) - i] = self.body[len(self.body) - i - 1]
         self.body[0] = (self.x, self.y)
 
-    def BlockCheck(self, x=0, y=1, uslov=windowSize // GridSize - 1, p="y"):
+    def BlockCheck(self, x=0, y=1, uslov=var.winS // var.GridSize - 1, p="y"):
         if p == "y":
             for i, block in enumerate(self.body):
                 if block[x] == uslov and block[y] == self.y:
@@ -88,114 +110,88 @@ class Snake:
         self.x += self.direct[0]
         if self.x < 0:
             self.BlockCheck()
-            self.x = windowSize // GridSize - 1
-        elif self.x > windowSize // GridSize - 1:
+            self.x = var.winS // var.GridSize - 1
+        elif self.x > var.winS // var.GridSize - 1:
             self.BlockCheck(0, 1, 0)
             self.x = 0
         if self.y < 0:
-            self.BlockCheck(1, 0, windowSize // GridSize, "x")
-            self.y = windowSize // GridSize
-        elif self.y > windowSize // GridSize - 1:
+            self.BlockCheck(1, 0, var.winS // var.GridSize, "x")
+            self.y = var.winS // var.GridSize
+        elif self.y > var.winS // var.GridSize - 1:
             self.BlockCheck(1, 0, 0, "x")
             self.y = 0
         self.UpdatePos()
 
 
-class Game:
-    def __init__(self):
-        self.settings: bool = False
-        self.menu: bool = True
-        self.active: bool = True
-        self.winS: int = windowSize
-        self.win: py.Surface = py.display.set_mode((self.winS, self.winS + 50))
-        self.GridSize: int = GridSize
-        self.snake = Snake()
-        self.fruit = Fruit()
-        self.score: int = 0
-        self.font = py.font.SysFont("Arial", 60)
-        self.GameoverText = self.font.render("Game0ver", True, (255, 255, 255))
-        self.FPS = FPS
-        self.DELAY = DELAY
-        self.PlAYER_NAME = Player_Name
-        py.display.set_caption("SNAKE GAME")
-
-
-var = Game()  # MAIN GAME VARIABLES
-_SCORE_TEXT_ = settings_fonts.render(f"SCORE: {var.score}", True, (255, 255, 255))
+snake = Snake()
+fruit = Fruit()
 
 
 def GoBack():
-    global var, _SCORE_TEXT_
+    global var, snake, fruit
     keys = py.key.get_pressed()
     if keys[py.K_ESCAPE]:
         if not var.menu and not var.settings:
             var = Game()
-            _SCORE_TEXT_ = settings_fonts.render(f"SCORE: {var.score}", True, (255, 255, 255))
+            snake = Snake()
+            fruit = Fruit()
+            var.SCORE_TEXT = var.settings_fonts.render(f"SCORE: {var.score}", True, (255, 255, 255))
         var.settings = False
         var.menu = True
 
 
 def Menu():
     var.win.fill((0, 0, 0))
-    var.win.blit(_TITLE_TEXT_, _TITLE_TEXT_POS)
-    _PLAY_BUTTON_.Draw(var.win)
-    _SETTING_BUTTON_.Draw(var.win)
+    var.win.blit(var.TITLE_TEXT, var.TITLE_TEXT_POS)
+    var.PLAY_BUTTON.Draw(var.win)
+    var.SETTING_BUTTON.Draw(var.win)
     py.display.update()
-    if _PLAY_BUTTON_.OnClick():
+    if var.PLAY_BUTTON.OnClick():
         var.menu = False
-    elif _SETTING_BUTTON_.OnClick():
+    elif var.SETTING_BUTTON.OnClick():
         var.settings = True
         var.menu = False
 
 
 def settings():
+    global var, snake, fruit
     Clock = py.time.Clock()
-    global _FPS_TEXT_, _WinS_TEXT_, _BACK_BUTTON_, _SETTING_BUTTON_, _PLAY_BUTTON_, _TITLE_TEXT_POS
-    global _WINS_SLIDER_, _FPS_SLIDER_, _PLAYER_NAME_BOX_
     var.win.fill((0, 0, 0))
-    var.win.blit(_FPS_TEXT_, (10, 10))
-    var.win.blit(_WinS_TEXT_, (10, 76))
+    var.win.blit(var.FPS_TEXT, (10, 10))
+    var.win.blit(var.WinS_TEXT, (10, 76))
 
-    _FPS_SLIDER_.Move()
-    _WINS_SLIDER_.Move()
-    _PLAYER_NAME_BOX_.Input()
-    var.win.blit(_PLAYER_NAME_TEXT_, (10, 152))
-    var.FPS = round(_FPS_SLIDER_.val)
-    var.winS = round(_WINS_SLIDER_.val)
-    var.PlAYER_NAME = _PLAYER_NAME_BOX_.text
+    var.FPS_SLIDER.Move()
+    var.WINS_SLIDER.Move()
+    var.PLAYER_NAME_BOX.Input()
+    var.win.blit(var.PLAYER_NAME_TEXT, (10, 152))
+    var.FPS = round(var.FPS_SLIDER.val)
+    var.winS = round(var.WINS_SLIDER.val)
+    var.Player_Name = var.PLAYER_NAME_BOX.text
 
-    _PLAYER_NAME_BOX_.Draw(var.win)
-    _BACK_BUTTON_.Draw(var.win)
-    _WINS_SLIDER_.Draw(var.win)
-    _FPS_SLIDER_.Draw(var.win)
-    if _BACK_BUTTON_.OnClick():
+    var.PLAYER_NAME_BOX.Draw(var.win)
+    var.BACK_BUTTON.Draw(var.win)
+    var.WINS_SLIDER.Draw(var.win)
+    var.FPS_SLIDER.Draw(var.win)
+    if var.BACK_BUTTON.OnClick():
         py.display.set_mode((var.winS, var.winS + 50))
-        # reload positons
-        _TITLE_TEXT_POS = _TITLE_TEXT_.get_rect()
-        _TITLE_TEXT_POS.center = (var.winS // 2, 85 // 2)
-        _PLAY_BUTTON_ = menu.Button(var.winS // 2 - 225, 150, 450, 100, "Play", 56, (50, 50, 50))
-        _SETTING_BUTTON_ = menu.Button(var.winS // 2 - 225, 300, 450, 100, "Settings", 56, (50, 50, 50))
-        _BACK_BUTTON_ = menu.Button(0, var.winS - 48, 250, 95, "Back", 56, (50, 50, 50))
-        _FPS_SLIDER_ = menu.Slider(160, 14, var.winS - 170, 48, 48, 48, var.FPS, 5, 60)
-        _WINS_SLIDER_ = menu.Slider(220, 76, var.winS - 230, 48, 48, 48, var.winS, 750, 1500)
-        _PLAYER_NAME_BOX_ = menu.Text_BOX(220, 152, 100, 55, var.PlAYER_NAME, 45)
         with open("settings.txt", "w") as f:
             f.write(f"""
 FPS: {var.FPS}
 DELAY: {var.DELAY}
 WINDOWSIZE: {var.winS}
 GRIDSIZE: {var.GridSize}
-PLAYERNAME: {var.PlAYER_NAME}
+PLAYERNAME: {var.Player_Name}
 #DEAFULT SETTINGS ARE
 #FPS: 10
 #DELAY: 50
 #WINDOWSIZE: 750
 #GRIDSIZE: 25"""
                     )
-        var.settings = False
-        var.menu = True
-    _FPS_TEXT_ = settings_fonts.render(f"FPS: {var.FPS}", True, (255, 255, 255))
-    _WinS_TEXT_ = settings_fonts.render(f"WinS: {var.winS}", True, (255, 255, 255))
+        var = Game()
+        snake = Snake()
+        fruit = Fruit()
+    var.FPS_TEXT = var.settings_fonts.render(f"FPS: {var.FPS}", True, (255, 255, 255))
+    var.WinS_TEXT = var.settings_fonts.render(f"WinS: {var.winS}", True, (255, 255, 255))
     py.display.update()
     Clock.tick(10)
 
@@ -208,48 +204,51 @@ def Close():
 
 
 def Game0ver():
-    global var, _SCORE_TEXT_
+    global var, snake, fruit
     Gameover = var.GameoverText.get_rect()
     Gameover.center = (var.winS // 2, var.winS // 2)
     var.win.blit(var.GameoverText, Gameover)
     py.display.set_caption("Game0ver")
     py.display.update()
     with open("scores.txt", "w") as f:
-        f.write(f' Player {var.PlAYER_NAME!r} Scored {var.score} at {datetime.now().strftime("%H:%M %d/%m/%Y")}. \n')
+        f.write(f' Player {var.Player_Name!r} Scored {var.score} at {datetime.now().strftime("%H:%M %d/%m/%Y")}. \n')
     py.time.wait(2000)
     var = Game()
+    snake = Snake()
+    fruit = Fruit()
+    _SCORE_TEXT_ = var.settings_fonts.render(f"SCORE: {var.score}", True, (255, 255, 255))
 
 
 def FruitInBody():  # check if fruit spawn in body of snake
-    for part in var.snake.body:
-        if var.fruit.x == part[0] or var.fruit.y == part[1]:
+    for part in snake.body:
+        if fruit.x == part[0] and fruit.y == part[1]:
             return True
         return False
 
 
 def FruitEat():
-    global _SCORE_TEXT_
-    if var.snake.x == var.fruit.x and var.snake.y == var.fruit.y:
+    global fruit
+    if snake.x == fruit.x and snake.y == fruit.y:
+        snake.AddBlock()
         while True:
-            var.fruit = Fruit()
+            fruit = Fruit()
             if not FruitInBody():
                 break
-        var.snake.AddBlock()
-        var.score += 10 * FPS
-        _SCORE_TEXT_ = settings_fonts.render(f"SCORE: {var.score}", True, (255, 255, 255))
+        var.score += 10 * var.FPS
+        var.SCORE_TEXT = var.settings_fonts.render(f"SCORE: {var.score}", True, (255, 255, 255))
 
 
 def logic():
     FruitEat()
-    var.snake.Move()
-    for i, part in enumerate(var.snake.body):
-        if var.snake.x == part[0] and var.snake.y == part[1] and var.snake.len != 2 and i != 0:
+    snake.Move()
+    for i, part in enumerate(snake.body):
+        if snake.x == part[0] and snake.y == part[1] and snake.len != 2 and i != 0:
             Game0ver()
             break
 
 
 def DrawSnake():
-    for i, p in enumerate(var.snake.body):
+    for i, p in enumerate(snake.body):
         if i != 0:
             py.draw.rect(var.win, (255, 0, 0),
                          (p[0] * var.GridSize + 1, p[1] * var.GridSize + 1, var.GridSize - 1, var.GridSize - 1))
@@ -267,16 +266,16 @@ def DrawGrid():
 def ReDrawScreen():
     var.win.fill((0, 0, 0))
     # DrawGrid()
-    var.fruit.draw(var.win)
+    fruit.draw(var.win)
     DrawSnake()
     py.draw.rect(var.win, (30, 30, 30), (0, var.winS, var.winS, 55))
-    var.win.blit(_SCORE_TEXT_, (0, var.winS))
+    var.win.blit(var.SCORE_TEXT, (0, var.winS))
     py.display.update()
 
 
 def Main():
     Clock = py.time.Clock()
-    if windowSize < 450:
+    if var.winS < 450:
         var.active = False
     while var.active:
         if var.menu:
