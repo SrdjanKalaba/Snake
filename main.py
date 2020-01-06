@@ -32,12 +32,13 @@ class Game:
         self.TITLE_TEXT_POS.center = (self.winS // 2, 85 // 2)
         self.PLAY_BUTTON = menu.Button(self.winS // 2 - 225, 150, 450, 100, "Play", 56, (50, 50, 50))
         self.SETTING_BUTTON = menu.Button(self.winS // 2 - 225, 300, 450, 100, "Settings", 56, (50, 50, 50))
-        self.FPS_TEXT = self.settings_fonts.render(f"FPS: {self.FPS}", True, (255, 255, 255))
-        self.PLAYER_NAME_TEXT = self.settings_fonts.render("NAME: ", True, (255, 255, 255))
+        self.FPS_TEXT = self.settings_fonts.render(f"Fps: {self.FPS}", True, (255, 255, 255))
+        self.PLAYER_NAME_TEXT = self.settings_fonts.render("Name: ", True, (255, 255, 255))
         self.WinS_TEXT = self.settings_fonts.render(f"WinS: {self.winS}", True, (255, 255, 255))
         self.FPS_SLIDER = menu.Slider(160, 14, self.winS - 170, 48, 48, 48, self.FPS, 5, 60)
         self.WINS_SLIDER = menu.Slider(220, 76, self.winS - 230, 48, 48, 48, self.winS, 750, 1500)
-        self.BACK_BUTTON = menu.Button(0, self.winS - 48, 250, 95, "Back", 56, (50, 50, 50))
+        self.Save_BUTTON = menu.Button(0, self.winS - 48, 250, 95, "Save", 56, (50, 50, 50))
+        self.Cancel_BUTTON = menu.Button(self.winS - 250, self.winS - 48, 250, 95, "Cancel", 56, (50, 50, 50))
         self.PLAYER_NAME_BOX = menu.Text_BOX(220, 152, 100, 55, self.Player_Name, 45)
         self.settings: bool = False
         self.menu: bool = True
@@ -169,27 +170,47 @@ def settings():
     var.Player_Name = var.PLAYER_NAME_BOX.text
 
     var.PLAYER_NAME_BOX.Draw(var.win)
-    var.BACK_BUTTON.Draw(var.win)
+    var.Save_BUTTON.Draw(var.win)
+    var.Cancel_BUTTON.Draw(var.win)
     var.WINS_SLIDER.Draw(var.win)
     var.FPS_SLIDER.Draw(var.win)
-    if var.BACK_BUTTON.OnClick():
+    if var.Save_BUTTON.OnClick():
         py.display.set_mode((var.winS, var.winS + 50))
         with open("settings.txt", "w") as f:
             f.write(f"""
-FPS: {var.FPS}
-DELAY: {var.DELAY}
-WINDOWSIZE: {var.winS}
-GRIDSIZE: {var.GridSize}
-PLAYERNAME: {var.Player_Name}
+Fps: {var.FPS}
+Delay: {var.DELAY}
+WindowSize: {var.winS}
+GridSize: {var.GridSize}
+PlayerName: {var.Player_Name}
 #DEAFULT SETTINGS ARE
-#FPS: 10
-#DELAY: 50
-#WINDOWSIZE: 750
-#GRIDSIZE: 25"""
+#Fps: 10
+#Delay: 50
+#WindowSize: 750
+#GridSize: 25"""
                     )
         var = Game()
         snake = Snake()
         fruit = Fruit()
+    if var.Cancel_BUTTON.OnClick():
+        try:
+            with open("settings.txt", "r") as file:
+                settings = file.read()
+                settings = settings.split("\n")
+
+            var.winS = int(settings[3][12:])
+            var.GridSize = int(settings[4][10:])
+            var.FPS = int(settings[1][5:])
+            var.DELAY = int(settings[2][6:])
+            var.Player_Name = settings[5][12:]
+        except:
+            var.winS = 750
+            var.GridSize = 25
+            var.FPS = 10
+            var.DELAY = 50
+            var.Player_Name = "ERR"
+        var.menu = True
+        var.settings = False
     var.FPS_TEXT = var.settings_fonts.render(f"FPS: {var.FPS}", True, (255, 255, 255))
     var.WinS_TEXT = var.settings_fonts.render(f"WinS: {var.winS}", True, (255, 255, 255))
     py.display.update()
