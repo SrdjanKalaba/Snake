@@ -1,11 +1,10 @@
-
-FPS: 10
-DELAY: 50
-WINDOWSIZE: 750
-GRIDSIZE: 25
-PLAYERNAME: Dev
+Fps: 10
+Delay: 50
+WindowSize: 750
+GridSize: 25
+PlayerName: Dev
 #DEAFULT SETTINGS ARE
-#FPS: 10
-#DELAY: 50
-#WINDOWSIZE: 750
-#GRIDSIZE: 25
+#Fps: 10
+#Delay: 50
+#WindowSize: 750
+#GridSize: 25
