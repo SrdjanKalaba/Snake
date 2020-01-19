@@ -152,7 +152,7 @@ def Menu():
     var.win.blit(var.TITLE_TEXT, var.TITLE_TEXT_POS)
     var.PLAY_BUTTON.Draw(var.win)
     var.SETTING_BUTTON.Draw(var.win)
-    py.display.flip()
+    py.display.update()
     if var.PLAY_BUTTON.Click():
         var.menu = False
     elif var.SETTING_BUTTON.Click():
