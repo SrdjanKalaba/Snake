@@ -21,10 +21,10 @@ class Button:
             py.draw.rect(Window, (78, 139, 237), (self.x, self.y, self.width, self.height))
         else:
             py.draw.rect(Window, self.backcolor, (self.x, self.y, self.width, self.height))
-        py.draw.rect(Window, (255, 255, 255), (self.x, self.y, self.width, self.height), 8)
+        py.draw.rect(Window, (255, 255, 255), (self.x, self.y, self.width, self.height), 4)
         Window.blit(self.TEXT, self._TEXT_POS_)
 
-    def OnClick(self):
+    def Click(self):
         Mx, My = py.mouse.get_pos()
         if py.mouse.get_pressed()[0] and self.x + self.width > Mx > self.x and self.y + self.height > My > self.y:
             return True
@@ -44,9 +44,9 @@ class Slider:
         self.MinVal = valueMin
 
     def Draw(self, Sur: py.Surface):
-        py.draw.rect(Sur, (40, 40, 40), (self.x, self.y, self.w, self.h))
+        py.draw.rect(Sur, (50, 50, 50), (self.x, self.y, self.w, self.h))
         py.draw.rect(Sur, (255, 255, 255), (self.x, self.y, self.val / self.MaxVal * self.w, self.h))
-        py.draw.rect(Sur, (40, 40, 40), (self.x, self.y, self.w, self.h), 6)
+        py.draw.rect(Sur, (50, 50, 50), (self.x, self.y, self.w, self.h), 6)
 
     def Move(self):
         mouse = py.mouse.get_pressed()
@@ -69,7 +69,7 @@ class Text_BOX:
 
     def Draw(self, Sur: py.Surface):
         py.draw.rect(Sur, (255, 255, 255), (self.x, self.y, self.w, self.h))
-        py.draw.rect(Sur, (0, 0, 0), (self.x, self.y, self.w, self.h), 4)
+        py.draw.rect(Sur, (50, 50, 50), (self.x, self.y, self.w, self.h), 4)
         Sur.blit(self._TEXT_, (self.x+5, self.y))
         if self._TEXT_.get_width() > self.w:
             self.w = self._TEXT_.get_width() + 10
@@ -90,5 +90,5 @@ class Text_BOX:
                 finally:
                     pass
             elif keys[32]:  # SPACE
-                self.text += " "
+                self.text += chr(32)
             self._TEXT_ = self.font.render(self.text, True, (0, 0, 0))
