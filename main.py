@@ -272,12 +272,13 @@ def Game0ver():
     py.display.update()
     with open("scores.txt", "a") as f:
         f.write(f' Player {var.Player_Name!r} Scored {var.score} at {datetime.now().strftime("%H:%M %d/%m/%Y")}. \n')
-    try:
-        scores = []
-        for i, p in enumerate(f.read().split("\n")):
-            scores.append((p.split(" ")[2], p.split(" ")[4]))
-    except:
-        pass
+    scores = []
+    with open("scores.txt", "r") as f:
+        try:
+            for i, p in enumerate(f.read().split("\n")):
+                scores.append((p.split(" ")[2], p.split(" ")[4]))
+        except:
+            pass
     py.time.wait(2000)
     var = Game()
     snake = Snake()
@@ -301,7 +302,7 @@ def FruitEat():
             if not FruitInBody():
                 break
         var.score += 10 * var.FPS
-        var.SCORE_TEXT = var.settings_fonts.render(f"SCORE: {var.score}", True, (255, 255, 255))
+        var.SCORE_TEXT = var.settings_fonts.render(f"Score: {var.score}", True, (255, 255, 255))
 
 
 def logic():
