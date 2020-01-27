@@ -3,24 +3,15 @@ import menu
 from random import randint
 from datetime import datetime
 
+
 py.init()
 scores = []
-names_text = []
-scores_text = []
 with open("scores.txt", "r") as f:
     try:
         for i, p in enumerate(f.read().split("\n")):
             scores.append((p.split(" ")[2], p.split(" ")[4]))
     except:
         pass
-
-
-for p, i in enumerate(scores):
-    try:
-        names_text.append(i[0])
-        scores_text.append(i[1])
-    except:
-        break
 
 
 class Game:
@@ -182,12 +173,14 @@ def Menu():
 
 def Scoreboard():
     var.win.fill((0, 0, 0))
-    py.draw.rect(var.win, (255, 127, 80), (100, var.winS - 700, var.winS - 200, 20*30))
+    py.draw.rect(var.win, (255, 127, 80), (100, var.winS - 700, var.winS - 200, 20 * 30))
     for i in range(15):
         py.draw.rect(var.win, (255, 99, 71), (100, i * 40 + var.winS - 700, var.winS - 200, 20))
         try:
-            var.win.blit(var.Font_Scoreboard.render(scores_text[i], True, (255, 255, 255)), (var.winS - 20 * 9, i * 20 + 20 + var.winS - 700))
-            var.win.blit(var.Font_Scoreboard.render(names_text[i], True, (255, 255, 255)), (120, i * 20 + 20 + var.winS - 700))
+            var.win.blit(var.Font_Scoreboard.render(scores[i][1], True, (255, 255, 255)),
+                         (var.winS - 20 * 9, i * 20 + 20 + var.winS - 700))
+            var.win.blit(var.Font_Scoreboard.render(scores[i][0], True, (255, 255, 255)),
+                         (120, i * 20 + 20 + var.winS - 700))
         except:
             pass
     var.win.blit(var.Font_Scoreboard.render("Score", True, (0, 0, 0)), (var.winS - 20 * 9, var.winS - 700))
@@ -280,11 +273,9 @@ def Game0ver():
     with open("scores.txt", "a") as f:
         f.write(f' Player {var.Player_Name!r} Scored {var.score} at {datetime.now().strftime("%H:%M %d/%m/%Y")}. \n')
     try:
+        scores = []
         for i, p in enumerate(f.read().split("\n")):
-            scores[i] = (p.split(" ")[1], p.split(" ")[3])
-        for p, i in enumerate(scores):
-            names_text[p] = i[0]
-            scores_text[p] = i[1]
+            scores.append((p.split(" ")[2], p.split(" ")[4]))
     except:
         pass
     py.time.wait(2000)
