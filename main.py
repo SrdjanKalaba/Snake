@@ -4,6 +4,23 @@ from random import randint
 from datetime import datetime
 
 py.init()
+scores = []
+names_text = []
+scores_text = []
+with open("scores.txt", "r") as f:
+    try:
+        for i, p in enumerate(f.read().split("\n")):
+            scores.append((p.split(" ")[2], p.split(" ")[4]))
+    except:
+        pass
+
+
+for p, i in enumerate(scores):
+    try:
+        names_text.append(i[0])
+        scores_text.append(i[1])
+    except:
+        break
 
 
 class Game:
@@ -32,6 +49,7 @@ class Game:
         self.TITLE_TEXT_POS.center = (self.winS // 2, 85 // 2)
         self.PLAY_BUTTON = menu.Button(self.winS // 2 - 225, 150, 450, 100, "Play", 56, (50, 50, 50))
         self.SETTING_BUTTON = menu.Button(self.winS // 2 - 225, 300, 450, 100, "Settings", 56, (50, 50, 50))
+        self.Score_Borad_Button = menu.Button(self.winS // 2 - 225, 450, 450, 100, "Scoreboard", 56, (50, 50, 50))
         self.FPS_TEXT = self.settings_fonts.render(f"Fps: {self.FPS}", True, (255, 255, 255))
         self.Delay_Text = self.settings_fonts.render(f"Delay: {self.DELAY}", True, (255, 255, 255))
         self.PLAYER_NAME_TEXT = self.settings_fonts.render("Name: ", True, (255, 255, 255))
@@ -41,15 +59,16 @@ class Game:
         self.Delay_Slider = menu.Slider(220, 166, self.winS - 230, 48, 48, 48, self.DELAY, 0, 100)
         self.Save_BUTTON = menu.Button(0, self.winS - 48, 250, 95, "Save", 56, (50, 50, 50))
         self.Cancel_BUTTON = menu.Button(self.winS - 250, self.winS - 48, 250, 95, "Cancel", 56, (50, 50, 50))
+        self.Back_BUTTON = menu.Button(0, self.winS - 48, 250, 95, "Back", 56, (50, 50, 50))
         self.PLAYER_NAME_BOX = menu.Text_BOX(220, 242, 100, 55, self.Player_Name, 45)
-        self.settings: bool = False
-        self.menu: bool = True
-        self.active: bool = True
+        self.place: str = "Menu"
+        self.Font_Scoreboard = py.font.SysFont("Arial", 20, True)
         self.win: py.Surface = py.display.set_mode((self.winS, self.winS + 50))
         self.score: int = 0
-        self.SCORE_TEXT = self.settings_fonts.render(f"SCORE: {self.score}", True, (255, 255, 255))
+        self.SCORE_TEXT = self.settings_fonts.render(f"Score: {self.score}", True, (255, 255, 255))
         self.font = py.font.SysFont("Arial", 60)
         self.GameoverText = self.font.render("Game0ver", True, (255, 255, 255))
+        self.active = True
         py.display.set_caption("SNAKE GAME")
 
 
@@ -85,7 +104,7 @@ class Snake:
         self.len: int = len(self.body)
 
     def AddBlock(self):
-        self.body.append((-1, -1))
+        self.body.append((self.body[self.len - 1][0] + self.direct[0], self.body[self.len - 1][1] + self.direct[1]))
         self.len = len(self.body)
 
     def UpdatePos(self):
@@ -138,13 +157,12 @@ def GoBack():
     global var, snake, fruit
     keys = py.key.get_pressed()
     if keys[py.K_ESCAPE]:
-        if not var.menu and not var.settings:
+        if var.place != "Menu" and var.place != "Settings":
             var = Game()
             snake = Snake()
             fruit = Fruit()
-            var.SCORE_TEXT = var.settings_fonts.render(f"SCORE: {var.score}", True, (255, 255, 255))
-        var.settings = False
-        var.menu = True
+            var.SCORE_TEXT = var.settings_fonts.render(f"Score: {var.score}", True, (255, 255, 255))
+        var.place = "Menu"
 
 
 def Menu():
@@ -152,12 +170,32 @@ def Menu():
     var.win.blit(var.TITLE_TEXT, var.TITLE_TEXT_POS)
     var.PLAY_BUTTON.Draw(var.win)
     var.SETTING_BUTTON.Draw(var.win)
+    var.Score_Borad_Button.Draw(var.win)
     py.display.update()
     if var.PLAY_BUTTON.Click():
-        var.menu = False
+        var.place = "Game"
     elif var.SETTING_BUTTON.Click():
-        var.settings = True
-        var.menu = False
+        var.place = "Settings"
+    elif var.Score_Borad_Button.Click():
+        var.place = "Scoreboard"
+
+
+def Scoreboard():
+    var.win.fill((0, 0, 0))
+    py.draw.rect(var.win, (255, 127, 80), (100, var.winS - 700, var.winS - 200, 20*30))
+    for i in range(15):
+        py.draw.rect(var.win, (255, 99, 71), (100, i * 40 + var.winS - 700, var.winS - 200, 20))
+        try:
+            var.win.blit(var.Font_Scoreboard.render(scores_text[i], True, (255, 255, 255)), (var.winS - 20 * 9, i * 20 + 20 + var.winS - 700))
+            var.win.blit(var.Font_Scoreboard.render(names_text[i], True, (255, 255, 255)), (120, i * 20 + 20 + var.winS - 700))
+        except:
+            pass
+    var.win.blit(var.Font_Scoreboard.render("Score", True, (0, 0, 0)), (var.winS - 20 * 9, var.winS - 700))
+    var.win.blit(var.Font_Scoreboard.render("Name", True, (0, 0, 0)), (120, var.winS - 700))
+    var.Back_BUTTON.Draw(var.win)
+    if var.Back_BUTTON.Click():
+        var.place = "Menu"
+    py.display.update()
 
 
 def settings():
@@ -217,14 +255,12 @@ PlayerName: {var.Player_Name}
             var.FPS = 10
             var.DELAY = 50
             var.Player_Name = "ERR"
-        var.menu = True
-        var.settings = False
+        var.place = "Menu"
     var.FPS_TEXT = var.settings_fonts.render(f"Fps: {var.FPS}", True, (255, 255, 255))
     var.WinS_TEXT = var.settings_fonts.render(f"WinS: {var.winS}", True, (255, 255, 255))
     var.Delay_Text = var.settings_fonts.render(f"Delay: {var.DELAY}", True, (255, 255, 255))
     py.display.update()
     Clock.tick(10)
-
 
 
 def Close():
@@ -243,6 +279,14 @@ def Game0ver():
     py.display.update()
     with open("scores.txt", "a") as f:
         f.write(f' Player {var.Player_Name!r} Scored {var.score} at {datetime.now().strftime("%H:%M %d/%m/%Y")}. \n')
+    try:
+        for i, p in enumerate(f.read().split("\n")):
+            scores[i] = (p.split(" ")[1], p.split(" ")[3])
+        for p, i in enumerate(scores):
+            names_text[p] = i[0]
+            scores_text[p] = i[1]
+    except:
+        pass
     py.time.wait(2000)
     var = Game()
     snake = Snake()
@@ -309,13 +353,16 @@ def Main():
     if var.winS < 450:
         var.active = False
     while var.active:
-        if var.menu:
+        if var.place == "Menu":
             Close()
             Menu()
             Clock.tick(60)
-        elif var.settings:
+        elif var.place == "Settings":
             Close()
             settings()
+        elif var.place == "Scoreboard":
+            Close()
+            Scoreboard()
         else:
             py.time.delay(var.DELAY)
             Close()
