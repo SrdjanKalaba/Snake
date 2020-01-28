@@ -11,7 +11,7 @@ with open("scores.txt", "r") as file:
     try:
         for i, p in enumerate(file.read().split("\n")):
             scores.append((p.split(" ")[2], p.split(" ")[4]))
-    finally:
+    except:
         pass
 
 
@@ -32,7 +32,7 @@ class Game:
             self.FPS = int(settings[0][5:])
             self.DELAY = int(settings[1][6:])
             self.Player_Name = settings[4][12:]
-        finally:
+        except:
             pass
         self.font = py.font.SysFont("Arial", 85)
         self.settings_fonts = py.font.SysFont("Arial", 45)
@@ -182,7 +182,7 @@ def Scoreboard():
                         (var.winS - 20 * 9, i * 20 + 20 + var.winS - 700))
             window.blit(var.Font_Scoreboard.render(scores[i][0], True, (255, 255, 255)),
                         (120, i * 20 + 20 + var.winS - 700))
-        finally:
+        except:
             pass
     window.blit(var.Font_Scoreboard.render("Score", True, (0, 0, 0)), (var.winS - 20 * 9, var.winS - 700))
     window.blit(var.Font_Scoreboard.render("Name", True, (0, 0, 0)), (120, var.winS - 700))
@@ -248,7 +248,7 @@ PlayerName: {var.Player_Name}
             var.FPS = int(settings[1][5:])
             var.DELAY = int(settings[2][6:])
             var.Player_Name = settings[5][12:]
-        finally:
+        except:
             pass
         var.place = "Menu"
     var.FPS_TEXT = var.settings_fonts.render(f"Fps: {var.FPS}", True, (255, 255, 255))
@@ -279,7 +279,7 @@ def Game0ver():
         try:
             for i, p in enumerate(f.read().split("\n")):
                 scores.append((p.split(" ")[2], p.split(" ")[4]))
-        finally:
+        except:
             pass
     py.time.wait(2000)
     var = Game()
