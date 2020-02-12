@@ -16,6 +16,8 @@ with open("scores.txt", "r") as file:
             scores.append((p[2], p[4], p[6]+" "+p[7]))
     except:
         pass
+    finally:
+        print(f"Scores successfully loaded {scores}.")
 
 
 class Game:
@@ -37,6 +39,8 @@ class Game:
             self.Player_Name = settings[4][12:]
         except:
             pass
+        finally:
+            print(f"Settings successfully loaded {settings}.")
         self.font = py.font.SysFont("Arial", 85)
         self.settings_fonts = py.font.SysFont("Arial", 45)
         self.TITLE_TEXT = self.font.render("SNAKE GAME", True, (255, 255, 255))
@@ -66,7 +70,7 @@ class Game:
         py.display.set_caption("SNAKE GAME")
 
 
-var = Game()  # MAIN GAME VARIABLES
+var = Game()  # Main game variables
 window: py.Surface = py.display.set_mode((var.winS, var.winS + 50))
 
 
@@ -87,15 +91,14 @@ class Fruit:
             self.drawerRadius += 1
 
     def New_Pos(self):
-        self.x = randint(0, var.winS // var.GridSize - 1)
-        self.y = randint(0, var.winS // var.GridSize - 1)
+        self.x, self.y = (randint(0, var.winS // var.GridSize - 1), randint(0, var.winS // var.GridSize - 1))
 
 
 class Snake:
     def __init__(self):
         self.x, self.y = (10, 10)
         self.direct: list = [0, 0]  # [x, y]
-        self.body = [(self.x, self.y), (self.x, self.y + 1)]
+        self.body = [(self.x, self.y)]
         self.len: int = len(self.body)
 
     def AddBlock(self):
@@ -183,11 +186,11 @@ def Scoreboard():
         py.draw.rect(window, (255, 99, 71), (100, i * 40 + var.winS - 700, var.winS - 200, 20))
         try:
             window.blit(var.Font_Scoreboard.render(scores[i][1], True, (255, 255, 255)),
-                        (var.winS - 20 * 9, i * 20 + 20 + var.winS - 700))
+                        (var.winS - 20 * 8 - var.Font_Scoreboard.size(scores[i][1])[0]//2, i * 20 + 20 + var.winS - 700))
             window.blit(var.Font_Scoreboard.render(scores[i][0], True, (255, 255, 255)),
                         (120, i * 20 + 20 + var.winS - 700))
-            window.blit(var.Font_Scoreboard.render(scores[i][2], True, (255, 255, 255)),
-                        (100 + (var.winS - 20 * 9)//2 - var.Font_Scoreboard.size(scores[i][2])[0]//2, i * 20 + 20 + var.winS - 700))
+            window.blit(var.Font_Scoreboard.render(scores[i][2][:-1], True, (255, 255, 255)),
+                        (100 + (var.winS - 20 * 9)//2 - var.Font_Scoreboard.size(scores[i][2][:-1])[0]//2, i * 20 + 20 + var.winS - 700))
         except:
             pass
     window.blit(var.Font_Scoreboard.render("Score", True, (0, 0, 0)), (var.winS - 20 * 9, var.winS - 700))
@@ -300,10 +303,8 @@ def FruitEat():
     global fruit
     if snake.x == fruit.x and snake.y == fruit.y:
         snake.AddBlock()
-        while True:
+        while FruitInBody():
             fruit.New_Pos()
-            if not FruitInBody():
-                break
         var.score += 10 * var.FPS
         var.SCORE_TEXT = var.settings_fonts.render(f"Score: {var.score}", True, (255, 255, 255))
 
@@ -329,13 +330,13 @@ def DrawSnake():
 
 def DrawGrid():
     for o in range(var.winS // var.GridSize + 1):
-        py.draw.line(window, (255, 255, 255), (i * var.GridSize, 0), (o * var.GridSize, var.winS))
-        py.draw.line(window, (255, 255, 255), (0, i * var.GridSize), (var.winS, o * var.GridSize))
+        py.draw.line(window, (255, 255, 255), (o * var.GridSize, 0), (o * var.GridSize, var.winS))
+        py.draw.line(window, (255, 255, 255), (0, o * var.GridSize), (var.winS, o * var.GridSize))
 
 
 def ReDrawScreen():
     window.fill((0, 0, 0))
-    # DrawGrid()
+    #DrawGrid()
     fruit.Draw(window)
     DrawSnake()
     py.draw.rect(window, (30, 30, 30), (0, var.winS, var.winS, 55))
@@ -359,6 +360,7 @@ def Main():
         elif var.place == "Scoreboard":
             Close()
             Scoreboard()
+            Clock.tick(30)
         else:
             py.time.delay(var.DELAY)
             Close()
