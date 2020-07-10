@@ -1,6 +1,8 @@
 from datetime import datetime
 from random import randint
 from time import perf_counter
+import tkinter as tk
+from tkinter.messagebox import showerror
 from pygame.locals import *
 
 import pygame as py
@@ -22,6 +24,12 @@ with open("scores.txt", "r") as file:
         print(f"Scores successfully loaded {scores}.")
 PLACE = 0
 
+try:
+    with open("CHECK", "r") as c:
+        serti = c.read()
+except:
+    serti = "no"
+
 
 class Game:
     def __init__(self):
@@ -41,9 +49,9 @@ class Game:
             self.Delay = int(settings[1][6:])
             self.Player_Name = settings[4][12:]
         except:
-            print(f"Settings successfully loaded {settings[:4]}.")
+            print(f"¯\_(ツ)_/¯.")
         finally:
-            print(f"Settings successfully loaded {settings[:4]}.")
+            print(f"Successfully loaded settings {settings[:4]}.")
         self.font = py.font.SysFont("Arial", 85)
         self.settings_fonts = py.font.SysFont("Arial", 45)
         self.Game_title_text = self.font.render("SNAKE GAME", True, (255, 255, 255))
@@ -375,6 +383,12 @@ Places = [Menu,
 def Main():
     if var.winS < 450:
         var.active = False
+    elif serti != "good":
+        var.active = False
+        root = tk.Tk()
+        root.withdraw()
+        showerror("Unregistered", "This is unregistered version :(")
+
     while var.active:
         Close()
         Places[PLACE]()
