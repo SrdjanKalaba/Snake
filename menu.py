@@ -1,4 +1,5 @@
 import pygame as py
+import keyboard
 
 py.init()
 
@@ -16,6 +17,7 @@ class Button:
         self._TEXT_POS_.center = (self.x + self.width // 2, self.y + self.height // 2)
 
     def Draw(self, Win: py.Surface):
+        global Mx, My
         Mx, My = py.mouse.get_pos()
         if self.x + self.width > Mx > self.x and self.y + self.height > My > self.y:
             py.draw.rect(Win, (78, 139, 237), (self.x, self.y, self.width, self.height))
@@ -25,10 +27,7 @@ class Button:
         Win.blit(self.TEXT, self._TEXT_POS_)
 
     def Click(self):
-        Mx, My = py.mouse.get_pos()
-        if py.mouse.get_pressed()[0] and self.x + self.width > Mx > self.x and self.y + self.height > My > self.y:
-            return True
-        return False
+        return py.mouse.get_pressed()[0] and self.x + self.width > Mx > self.x and self.y + self.height > My > self.y
 
 
 class Slider:
@@ -76,19 +75,16 @@ class Text_BOX:
 
     def Input(self):
         Mx, My = py.mouse.get_pos()
-        keys = py.key.get_pressed()
         if self.x + self.w > Mx > self.x and self.y + self.h > My > self.y:
-            for i in range(97, 123):
-                if keys[i]:
-                    if keys[304]:  # SHIFT
-                        self.text += chr(i).upper()
-                    else:
-                        self.text += chr(i)
-            if keys[8]:  # BACKSPACE
-                try:
-                    self.text = self.text[:-1]
-                finally:
-                    pass
-            elif keys[32]:  # SPACE
-                self.text += chr(32)
+            for e in py.event.get():
+                if e.type == py.KEYDOWN:
+                    try:
+                        if e.key == py.K_BACKSPACE:
+                            self.text = self.text[:-1]
+                        if e.key == py.KMOD_SHIFT:
+                            self.text += e.unicode
+                        else:
+                            self.text += e.unicode
+                    except:
+                        pass
             self._TEXT_ = self.font.render(self.text, True, (0, 0, 0))

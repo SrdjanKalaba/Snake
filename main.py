@@ -1,8 +1,7 @@
 from datetime import datetime
 from random import randint
 from time import perf_counter
-import tkinter as tk
-from tkinter.messagebox import showerror
+import json
 from pygame.locals import *
 
 import pygame as py
@@ -24,12 +23,6 @@ with open("scores.txt", "r") as file:
         print(f"Scores successfully loaded {scores}.")
 PLACE = 0
 
-try:
-    with open("CHECK", "r") as c:
-        serti = c.read()
-except:
-    serti = "no"
-
 
 class Game:
     def __init__(self):
@@ -39,19 +32,18 @@ class Game:
         self.Delay = 50
         self.Player_Name = "Player2"
         try:
-            with open("settings.txt", "r") as file:
-                settings = file.read()
-                settings = settings.split("\n")
+            with open("settings.json", "r") as file:
+                self.settings = json.load(file)
 
-            self.winS = int(settings[2][12:])
-            self.GridSize = int(settings[3][10:])
-            self.Fps = int(settings[0][5:])
-            self.Delay = int(settings[1][6:])
-            self.Player_Name = settings[4][12:]
+            self.winS = self.settings['Window size']
+            self.GridSize = self.settings['GridSize']
+            self.Fps = self.settings['Fps']
+            self.Delay = self.settings['Delay']
+            self.Player_Name = self.settings['Player Name']
         except:
             print(f"¯\_(ツ)_/¯.")
         finally:
-            print(f"Successfully loaded settings {settings[:4]}.")
+            print(f"Successfully loaded settings {self.settings}.")
         self.font = py.font.SysFont("Arial", 85)
         self.settings_fonts = py.font.SysFont("Arial", 45)
         self.Game_title_text = self.font.render("SNAKE GAME", True, (255, 255, 255))
@@ -66,7 +58,7 @@ class Game:
         self.Fps_slider = menu.Slider(160, 14, self.winS - 170, 48, 48, 48, self.Fps, 5, 60)
         self.WinS_Slider = menu.Slider(220, 90, self.winS - 230, 48, 48, 48, self.winS, 750, 1500)
         self.Delay_Slider = menu.Slider(220, 166, self.winS - 230, 48, 48, 48, self.Delay, 0, 100)
-        self.Save_Button = menu.Button(0, self.winS - 48, 250, 95, "Save", 56, (50, 50, 50))
+        self.Save_Button = menu.Button(0, self.winS - 48, 250, 95, "Ok", 56, (50, 50, 50))
         self.Cancel_Button = menu.Button(self.winS - 250, self.winS - 48, 250, 95, "Cancel", 56, (50, 50, 50))
         self.Back_Button = menu.Button(0, self.winS - 48, 250, 95, "Back", 56, (50, 50, 50))
         self.Player_Name_TextBox = menu.Text_BOX(220, 242, 100, 55, self.Player_Name, 45)
@@ -116,22 +108,12 @@ class Snake:
 
     def AddBlock(self):
         self.body.append((self.body[self.len - 1][0] + self.direct[0], self.body[self.len - 1][1] + self.direct[1]))
-        self.len = len(self.body)
+        self.len += 1
 
     def UpdatePos(self):
         for i in range(1, self.len):
             self.body[self.len - i] = self.body[self.len - i - 1]
         self.body[0] = (self.x, self.y)
-
-    def BlockCheck(self, x=0, y=1, arr=var.winS // var.GridSize - 1, p="y"):
-        if p == "y":
-            for i, block in enumerate(self.body):
-                if block[x] == arr and block[y] == self.y:
-                    Game0ver()
-        else:
-            for i, block in enumerate(self.body):
-                if block[x] == arr and block[y] == self.x:
-                    Game0ver()
 
     def Move(self):
         keys = py.key.get_pressed()
@@ -146,16 +128,12 @@ class Snake:
         self.x += self.direct[0]
         self.y += self.direct[1]
         if self.x < 0:
-            self.BlockCheck()
             self.x = var.winS // var.GridSize - 1
         elif self.x > var.winS // var.GridSize - 1:
-            self.BlockCheck(0, 1, 0)
             self.x = 0
         elif self.y < 0:
-            self.BlockCheck(1, 0, var.winS // var.GridSize, "x")
             self.y = var.winS // var.GridSize
         elif self.y > var.winS // var.GridSize - 1:
-            self.BlockCheck(1, 0, 0, "x")
             self.y = 0
         if self.direct != [0, 0]:
             self.UpdatePos()
@@ -204,8 +182,10 @@ def Scoreboard():
             window.blit(var.Font_Scoreboard.render(scores[y][1], True, (255, 255, 255)),
                         (var.winS - 20 * 8 - var.Font_Scoreboard.size(scores[y][1])[0] // 2,
                          y * 20 + 20 + var.winS - 700))
+
             window.blit(var.Font_Scoreboard.render(scores[y][0], True, (255, 255, 255)),
                         (120, y * 20 + 20 + var.winS - 700))
+
             window.blit(var.Font_Scoreboard.render(scores[y][2][:-1], True, (255, 255, 255)),
                         (100 + (var.winS - 20 * 9) // 2 - var.Font_Scoreboard.size(scores[y][2][:-1])[0] // 2,
                          y * 20 + 20 + var.winS - 700))
@@ -236,6 +216,7 @@ def Settings():
     var.Player_Name_TextBox.Input()
     var.Delay_Slider.Move()
     window.blit(var.Player_Name_Text, (10, 242))
+
     var.Fps = round(var.Fps_slider.val)
     var.winS = round(var.WinS_Slider.val)
     var.Delay = round(var.Delay_Slider.val)
@@ -249,20 +230,17 @@ def Settings():
     var.Delay_Slider.Draw(window)
     if var.Save_Button.Click():
         py.display.set_mode((var.winS, var.winS + 50))
-        with open("settings.txt", "w") as file:
-            file.write(f"""Fps: {var.Fps}
-Delay: {var.Delay}
-WindowSize: {var.winS}
-GridSize: {var.GridSize}
-PlayerName: {var.Player_Name}
-#DEAFULT SETTINGS ARE
-#Fps: 10
-#Delay: 50
-#WindowSize: 750
-#GridSize: 25""")
+        var.settings["Window size"] = var.winS
+        var.settings["Delay"] = var.Delay
+        var.settings["Fps"] = var.Fps
+        var.settings["GridSize"] = var.GridSize
+        var.settings["Player Name"] = var.Player_Name
+        with open("settings.json", "w") as setting:
+            json.dump(var.settings, setting, sort_keys=True)
         var = Game()
         snake = Snake()
         fruit = Fruit()
+        PLACE = 0
     if var.Cancel_Button.Click():
         var.winS = 750
         var.GridSize = 25
@@ -270,15 +248,14 @@ PlayerName: {var.Player_Name}
         var.Delay = 50
         var.Player_Name = "ERR"
         try:
-            with open("settings.txt", "r") as file:
-                settings = file.read()
-                settings = settings.split("\n")
+            with open("settings.json", "r") as file:
+                var.settings = json.load(file)
 
-            var.winS = int(settings[3][12:])
-            var.GridSize = int(settings[4][10:])
-            var.Fps = int(settings[1][5:])
-            var.Delay = int(settings[2][6:])
-            var.Player_Name = settings[5][12:]
+            var.winS = var.settings['Window size']
+            var.GridSize = var.settings['GridSize']
+            var.Fps = var.settings['Fps']
+            var.Delay = var.settings['Delay']
+            var.Player_Name = var.settings['Player Name']
         except:
             pass
         PLACE = 0
@@ -286,13 +263,12 @@ PlayerName: {var.Player_Name}
     var.WinS_TEXT = var.settings_fonts.render(f"WinS: {var.winS}", True, (255, 255, 255))
     var.Delay_Text = var.settings_fonts.render(f"Delay: {var.Delay}", True, (255, 255, 255))
     py.display.update()
-    Clock.tick(10)
+    Clock.tick(30)
 
 
 def Close():
-    for e in py.event.get():
-        if e.type == py.QUIT:
-            var.active = False
+    if py.event.poll().type == py.QUIT:
+        var.active = False
     GoBack()
 
 
@@ -314,16 +290,14 @@ def Game0ver():
 
 
 def FruitInBody():  # Check if fruit spawn in snake body
-    for part in snake.body:
-        if fruit.x == part[0] and fruit.y == part[1]:
-            return True
-    return False
+    return (fruit.x, fruit.y) in snake.body
 
 
 def FruitEat():
     global fruit
-    if snake.x == fruit.x and snake.y == fruit.y:
+    if (snake.x, snake.y) == (fruit.x, fruit.y):
         snake.AddBlock()
+        fruit.New_Pos()
         while FruitInBody():
             fruit.New_Pos()
         var.score += 10 * var.Fps
@@ -333,10 +307,8 @@ def FruitEat():
 def logic():
     FruitEat()
     snake.Move()
-    for k, part in enumerate(snake.body):
-        if snake.x == part[0] and snake.y == part[1] and snake.len != 2 and k != 0:
-            Game0ver()
-            break
+    if (snake.x, snake.y) in snake.body[1:] and snake.len > 1:
+        Game0ver()
 
 
 def DrawSnake():
@@ -382,12 +354,7 @@ Places = [Menu,
 
 def Main():
     if var.winS < 450:
-        var.active = False
-    elif serti != "good":
-        var.active = False
-        root = tk.Tk()
-        root.withdraw()
-        showerror("Unregistered", "This is unregistered version :(")
+        var.winS = 450
 
     while var.active:
         Close()
