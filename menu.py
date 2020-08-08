@@ -1,5 +1,4 @@
 import pygame as py
-import keyboard
 
 py.init()
 
@@ -44,7 +43,7 @@ class Slider:
 
     def Draw(self, Win: py.Surface):
         py.draw.rect(Win, (50, 50, 50), (self.x, self.y, self.w, self.h))
-        py.draw.rect(Win, (255, 255, 255), (self.x, self.y, self.val / self.MaxVal * self.w, self.h))
+        py.draw.rect(Win, (255, 255, 255), (self.x, self.y, round(self.val / self.MaxVal * self.w), self.h))
         py.draw.rect(Win, (50, 50, 50), (self.x, self.y, self.w, self.h), 6)
 
     def Move(self):
@@ -52,8 +51,7 @@ class Slider:
         Mx, My = py.mouse.get_pos()
         if mouse[0] and self.x + self.w > Mx > self.x and self.y + self.h > My > self.y:
             self.val = (Mx - self.x) / self.w * self.MaxVal
-            if self.val < self.MinVal:
-                self.val = self.MinVal
+            self.val = max(self.val, self.MinVal)
 
 
 class Text_BOX:
@@ -65,13 +63,16 @@ class Text_BOX:
         self.text = text
         self.font = py.font.SysFont("Arial", font_size)
         self._TEXT_ = self.font.render(self.text, True, (0, 0, 0))
+        self.w = self._TEXT_.get_width() + 10
 
     def Draw(self, Sur: py.Surface):
-        if self._TEXT_.get_width() > self.w:
-            self.w = self._TEXT_.get_width() + 10
         py.draw.rect(Sur, (255, 255, 255), (self.x, self.y, self.w, self.h))
         py.draw.rect(Sur, (50, 50, 50), (self.x, self.y, self.w, self.h), 4)
         Sur.blit(self._TEXT_, (self.x + 5, self.y))
+
+    def update_text(self):
+        self._TEXT_ = self.font.render(self.text, True, (0, 0, 0))
+        self.w = self._TEXT_.get_width() + 10
 
     def Input(self):
         Mx, My = py.mouse.get_pos()
@@ -81,10 +82,12 @@ class Text_BOX:
                     try:
                         if e.key == py.K_BACKSPACE:
                             self.text = self.text[:-1]
+                            self.update_text()
                         if e.key == py.KMOD_SHIFT:
                             self.text += e.unicode
+                            self.update_text()
                         else:
                             self.text += e.unicode
+                            self.update_text()
                     except:
                         pass
-            self._TEXT_ = self.font.render(self.text, True, (0, 0, 0))

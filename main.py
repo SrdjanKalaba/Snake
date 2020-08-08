@@ -1,7 +1,7 @@
 from datetime import datetime
 from random import randint
-from time import perf_counter
-import json
+from time import perf_counter  # , time
+from json import load, dump
 from pygame.locals import *
 
 import pygame as py
@@ -10,18 +10,33 @@ import menu
 
 py.init()
 scores = []
-with open("scores.txt", "r") as file:
-    scoressp = []
-    for i, p in enumerate(file.read().split("\n")):
-        scoressp.append(p.split(" "))
-    try:
-        for i, p in enumerate(scoressp):
-            scores.append((p[2], p[4], p[6] + " " + p[7]))
-    except:
-        pass
-    finally:
-        print(f"Scores successfully loaded {scores}.")
-PLACE = 0
+snake_body_part_colors = {
+    0: (255, 0, 0),
+    1: (0, 0, 255)
+}
+
+
+# offset = 0
+
+def Sort_list(arr):
+    n = len(arr)
+    # Traverse through all array elements
+    for i in range(n - 1):
+        for j in range(0, n - i - 1):
+            if arr[j]["Score"] < arr[j + 1]["Score"]:
+                arr[j], arr[j + 1] = arr[j + 1], arr[j]
+    return arr
+
+
+# with open("scores.txt", "w") as file:
+#    dump(list1, file, sort_keys=True)
+
+with open("scores.json", "r") as score:
+    scores = load(score)
+
+scores = Sort_list(scores)
+
+PLACE = "Menu"
 
 
 class Game:
@@ -30,18 +45,18 @@ class Game:
         self.GridSize = 25
         self.Fps = 10
         self.Delay = 50
-        self.Player_Name = "Player2"
+        self.Player_Name = "Player1"
         try:
             with open("settings.json", "r") as file:
-                self.settings = json.load(file)
+                self.settings = load(file)
 
             self.winS = self.settings['Window size']
             self.GridSize = self.settings['GridSize']
             self.Fps = self.settings['Fps']
             self.Delay = self.settings['Delay']
             self.Player_Name = self.settings['Player Name']
-        except:
-            print(f"¯\_(ツ)_/¯.")
+        except FileNotFoundError or KeyError:
+            print(f"   ¯\_(ツ)_/¯   ")
         finally:
             print(f"Successfully loaded settings {self.settings}.")
         self.font = py.font.SysFont("Arial", 85)
@@ -50,21 +65,21 @@ class Game:
         self.Game_title_pos = ((self.winS - self.font.size("SNAKE GAME")[0]) // 2, 0)
         self.Play_Button = menu.Button(self.winS // 2 - 225, 150, 450, 100, "Play", 56, (50, 50, 50))
         self.Settings_Button = menu.Button(self.winS // 2 - 225, 300, 450, 100, "Settings", 56, (50, 50, 50))
-        self.ScoreBorad_Button = menu.Button(self.winS // 2 - 225, 450, 450, 100, "Scoreboard", 56, (50, 50, 50))
+        self.ScoreBoard_Button = menu.Button(self.winS // 2 - 225, 450, 450, 100, "Scoreboard", 56, (50, 50, 50))
         self.Fps_Text = self.settings_fonts.render(f"Fps: {self.Fps}", True, (255, 255, 255))
         self.Delay_Text = self.settings_fonts.render(f"Delay: {self.Delay}", True, (255, 255, 255))
         self.Player_Name_Text = self.settings_fonts.render("Name:", True, (255, 255, 255))
         self.WinS_TEXT = self.settings_fonts.render(f"WinS: {self.winS}", True, (255, 255, 255))
-        self.Fps_slider = menu.Slider(160, 14, self.winS - 170, 48, 48, 48, self.Fps, 5, 60)
+        self.Fps_slider = menu.Slider(220, 14, self.winS - 230, 48, 48, 48, self.Fps, 5, 60)
         self.WinS_Slider = menu.Slider(220, 90, self.winS - 230, 48, 48, 48, self.winS, 750, 1500)
         self.Delay_Slider = menu.Slider(220, 166, self.winS - 230, 48, 48, 48, self.Delay, 0, 100)
         self.Save_Button = menu.Button(0, self.winS - 48, 250, 95, "Ok", 56, (50, 50, 50))
         self.Cancel_Button = menu.Button(self.winS - 250, self.winS - 48, 250, 95, "Cancel", 56, (50, 50, 50))
         self.Back_Button = menu.Button(0, self.winS - 48, 250, 95, "Back", 56, (50, 50, 50))
         self.Player_Name_TextBox = menu.Text_BOX(220, 242, 100, 55, self.Player_Name, 45)
-        self.Font_Scoreboard = py.font.SysFont("Arial", 20, True)
-        self.score: int = 0
-        self.Score_Text = self.settings_fonts.render(f"Score: {self.score}", True, (255, 255, 255))
+        self.Scoreboard_Font = py.font.SysFont("Arial", 20, True)
+        self.Score: int = 0
+        self.Score_Text = self.settings_fonts.render(f"Score: {self.Score}", True, (255, 255, 255))
         self.font = py.font.SysFont("Arial", 60)
         self.Gameover_Text = self.font.render("Game0ver", True, (255, 255, 255))
         self.active = True
@@ -75,6 +90,16 @@ var = Game()
 window: py.Surface = py.display.set_mode((var.winS, var.winS + 50))
 Clock = py.time.Clock()
 call = perf_counter()
+
+
+class Snake_part:
+    def __init__(self, x: int, y: int, color: int = 0):
+        self.pos = (x, y)
+        self.color = color
+
+    def draw(self):
+        py.draw.rect(window, snake_body_part_colors[self.color], (
+            self.pos[0] * var.GridSize + 1, self.pos[1] * var.GridSize + 1, var.GridSize - 1, var.GridSize - 1))
 
 
 class Fruit:
@@ -103,17 +128,17 @@ class Snake:
     def __init__(self):
         self.x, self.y = (10, 10)
         self.direct: list = [0, 0]  # [x, y]
-        self.body = [(self.x, self.y)]
+        self.body = [Snake_part(self.x, self.y, 1)]
         self.len: int = len(self.body)
 
     def AddBlock(self):
-        self.body.append((self.body[self.len - 1][0] + self.direct[0], self.body[self.len - 1][1] + self.direct[1]))
+        self.body.append(Snake_part(self.x + self.direct[0], self.y + self.direct[1]))
         self.len += 1
 
     def UpdatePos(self):
-        for i in range(1, self.len):
-            self.body[self.len - i] = self.body[self.len - i - 1]
-        self.body[0] = (self.x, self.y)
+        for i in range(self.len - 1, 0, -1):
+            self.body[i].pos = self.body[i - 1].pos
+        self.body[0].pos = (self.x, self.y)
 
     def Move(self):
         keys = py.key.get_pressed()
@@ -147,12 +172,12 @@ def GoBack():
     global var, snake, fruit, PLACE
     keys = py.key.get_pressed()
     if keys[K_ESCAPE]:
-        if PLACE != 0 and PLACE != 1:
+        if PLACE == ("Scoreboard" or "Game"):
             var = Game()
             snake = Snake()
             fruit = Fruit()
-            var.Score_Text = var.settings_fonts.render(f"Score: {var.score}", True, (255, 255, 255))
-        PLACE = 0
+            var.Score_Text = var.settings_fonts.render(f"Score: {var.Score}", True, (255, 255, 255))
+        PLACE = "Menu"
 
 
 def Menu():
@@ -161,43 +186,47 @@ def Menu():
     window.blit(var.Game_title_text, var.Game_title_pos)
     var.Play_Button.Draw(window)
     var.Settings_Button.Draw(window)
-    var.ScoreBorad_Button.Draw(window)
+    var.ScoreBoard_Button.Draw(window)
     py.display.update()
     if var.Play_Button.Click():
-        PLACE = 3
+        PLACE = "Game"
     elif var.Settings_Button.Click():
-        PLACE = 1
-    elif var.ScoreBorad_Button.Click():
-        PLACE = 2
+        PLACE = "Settings"
+    elif var.ScoreBoard_Button.Click():
+        PLACE = "Scoreboard"
     Clock.tick(60)
 
 
 def Scoreboard():
-    global PLACE
+    global PLACE, scores  # , offset
+    # Mx, My = py.mouse.get_pos()
+    # click = py.mouse.get_pressed()
     window.fill((0, 0, 0))
-    py.draw.rect(window, (255, 127, 80), (100, var.winS - 700, var.winS - 200, 20 * 30))
-    for y in range(15):
-        py.draw.rect(window, (255, 99, 71), (100, y * 40 + var.winS - 700, var.winS - 200, 20))
-        try:
-            window.blit(var.Font_Scoreboard.render(scores[y][1], True, (255, 255, 255)),
-                        (var.winS - 20 * 8 - var.Font_Scoreboard.size(scores[y][1])[0] // 2,
-                         y * 20 + 20 + var.winS - 700))
+    py.draw.rect(window, (255, 127, 80), (100, 50, var.winS - 200, 20 * 30))
+    # renders background
+    for i in range(15):
+        py.draw.rect(window, (255, 99, 71), (100, i * 40 + var.winS - 700, var.winS - 200, 20))
 
-            window.blit(var.Font_Scoreboard.render(scores[y][0], True, (255, 255, 255)),
-                        (120, y * 20 + 20 + var.winS - 700))
+    # Shows list
+    for y in range(min(15, scores.__len__())):
+        window.blit(var.Scoreboard_Font.render(scores[y]["Player"], True, (255, 255, 255)),
+                    (120, y * 20 + 20 + var.winS - 700))
 
-            window.blit(var.Font_Scoreboard.render(scores[y][2][:-1], True, (255, 255, 255)),
-                        (100 + (var.winS - 20 * 9) // 2 - var.Font_Scoreboard.size(scores[y][2][:-1])[0] // 2,
-                         y * 20 + 20 + var.winS - 700))
-        except:
-            pass
-    window.blit(var.Font_Scoreboard.render("Score", True, (0, 0, 0)), (var.winS - 20 * 9, var.winS - 700))
-    window.blit(var.Font_Scoreboard.render("Name", True, (0, 0, 0)), (120, var.winS - 700))
-    window.blit(var.Font_Scoreboard.render("Date", True, (0, 0, 0)),
-                (100 + (var.winS - 20 * 9) // 2 - var.Font_Scoreboard.size("Date")[0] // 2, var.winS - 700))
+        window.blit(var.Scoreboard_Font.render(scores[y]["date"], True, (255, 255, 255)),
+                    (100 + (var.winS - 180) // 2 - var.Scoreboard_Font.size(scores[y]["date"])[0] // 2,
+                     y * 20 + 20 + var.winS - 700))
+
+        window.blit(var.Scoreboard_Font.render(str(scores[y]["Score"]), True, (255, 255, 255)),
+                    (var.winS - 160 - var.Scoreboard_Font.size(str(scores[y]["Score"]))[0] // 2,
+                     y * 20 + 20 + var.winS - 700))
+
+    window.blit(var.Scoreboard_Font.render("Score", True, (0, 0, 0)), (var.winS - 20 * 9, var.winS - 700))
+    window.blit(var.Scoreboard_Font.render("Name", True, (0, 0, 0)), (120, var.winS - 700))
+    window.blit(var.Scoreboard_Font.render("Time and Date", True, (0, 0, 0)),
+                (100 + (var.winS - 20 * 9) // 2 - var.Scoreboard_Font.size("Time and Date")[0] // 2, var.winS - 700))
     var.Back_Button.Draw(window)
     if var.Back_Button.Click():
-        PLACE = 0
+        PLACE = "Menu"
     py.display.update()
     Clock.tick(30)
 
@@ -236,11 +265,11 @@ def Settings():
         var.settings["GridSize"] = var.GridSize
         var.settings["Player Name"] = var.Player_Name
         with open("settings.json", "w") as setting:
-            json.dump(var.settings, setting, sort_keys=True)
+            dump(var.settings, setting, sort_keys=True)
         var = Game()
         snake = Snake()
         fruit = Fruit()
-        PLACE = 0
+        PLACE = "Menu"
     if var.Cancel_Button.Click():
         var.winS = 750
         var.GridSize = 25
@@ -249,16 +278,16 @@ def Settings():
         var.Player_Name = "ERR"
         try:
             with open("settings.json", "r") as file:
-                var.settings = json.load(file)
+                var.settings = load(file)
 
             var.winS = var.settings['Window size']
             var.GridSize = var.settings['GridSize']
             var.Fps = var.settings['Fps']
             var.Delay = var.settings['Delay']
             var.Player_Name = var.settings['Player Name']
-        except:
+        except FileNotFoundError or KeyError:
             pass
-        PLACE = 0
+        PLACE = "Menu"
     var.Fps_Text = var.settings_fonts.render(f"Fps: {var.Fps}", True, (255, 255, 255))
     var.WinS_TEXT = var.settings_fonts.render(f"WinS: {var.winS}", True, (255, 255, 255))
     var.Delay_Text = var.settings_fonts.render(f"Delay: {var.Delay}", True, (255, 255, 255))
@@ -279,17 +308,17 @@ def Game0ver():
     window.blit(var.Gameover_Text, Gameover)
     py.display.set_caption("Game0ver")
     py.display.update()
-    scores.append((f"{var.Player_Name!r}", var.score, datetime.now().strftime("%H:%M %d/%m/%Y")))
-    with open("scores.txt", "a") as f:
-        f.write(f' Player {var.Player_Name!r} Scored {var.score} at {datetime.now().strftime("%H:%M %d/%m/%Y")}. \n')
+    scores.append({"Player": var.Player_Name, "Score": var.Score, "Date": datetime.now().strftime("%H:%M %d/%m/%Y")})
+    with open("scores.json", "a") as f:
+        dump(scores, f)
     py.time.wait(2000)
     var = Game()
     snake = Snake()
     fruit = Fruit()
-    _SCORE_TEXT_ = var.settings_fonts.render(f"Score: {var.score}", True, (255, 255, 255))
+    _SCORE_TEXT_ = var.settings_fonts.render(f"Score: {var.Score}", True, (255, 255, 255))
 
 
-def FruitInBody():  # Check if fruit spawn in snake body
+def FruitInBody():  # Check if fruit spawn inside of snake's body
     return (fruit.x, fruit.y) in snake.body
 
 
@@ -300,8 +329,8 @@ def FruitEat():
         fruit.New_Pos()
         while FruitInBody():
             fruit.New_Pos()
-        var.score += 10 * var.Fps
-        var.Score_Text = var.settings_fonts.render(f"Score: {var.score}", True, (255, 255, 255))
+        var.Score += 10 * var.Fps
+        var.Score_Text = var.settings_fonts.render(f"Score: {var.Score}", True, (255, 255, 255))
 
 
 def logic():
@@ -309,16 +338,6 @@ def logic():
     snake.Move()
     if (snake.x, snake.y) in snake.body[1:] and snake.len > 1:
         Game0ver()
-
-
-def DrawSnake():
-    for j, pa in enumerate(snake.body):
-        if j != 0:
-            py.draw.rect(window, (255, 0, 0),
-                         (pa[0] * var.GridSize + 1, pa[1] * var.GridSize + 1, var.GridSize - 1, var.GridSize - 1))
-        else:
-            py.draw.rect(window, (0, 0, 255),
-                         (pa[0] * var.GridSize + 1, pa[1] * var.GridSize + 1, var.GridSize - 1, var.GridSize - 1))
 
 
 def DrawGrid():
@@ -331,36 +350,39 @@ def Draw():
     window.fill((0, 0, 0))
     # DrawGrid()
     fruit.Draw(window)
-    DrawSnake()
+    for pa in snake.body:
+        pa.draw()
     py.draw.rect(window, (30, 30, 30), (0, var.winS, var.winS, 55))
     window.blit(var.Score_Text, (0, var.winS))
     py.display.update()
 
 
 def MainGame():
+    # stime = time()
     py.time.delay(var.Delay)
+
     Close()
     logic()
     Draw()
     Clock.tick(var.Fps)
+    # py.display.set_caption(f"{1 / (time() - stime)}")
 
 
-Places = [Menu,
-          Settings,
-          Scoreboard,
-          MainGame
-          ]
+Places = {"Menu": Menu,
+          "Settings": Settings,
+          "Scoreboard": Scoreboard,
+          "Game": MainGame
+          }
 
 
 def Main():
     if var.winS < 450:
         var.winS = 450
-
     while var.active:
         Close()
         Places[PLACE]()
+    py.quit()
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     Main()
-py.quit()
