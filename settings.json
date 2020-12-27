@@ -1,1 +1,7 @@
-{"Delay": 50, "Fps": 10, "GridSize": 25, "Player Name": "Player1", "Window size": 750}
+{
+    "Delay": 50,
+    "Fps": 10,
+    "GridSize": 25,
+    "Player Name": "Player1",
+    "Window size": 750
+}

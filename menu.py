@@ -15,9 +15,7 @@ class Button:
         self._TEXT_POS_ = self.TEXT.get_rect()
         self._TEXT_POS_.center = (self.x + self.width // 2, self.y + self.height // 2)
 
-    def Draw(self, Win: py.Surface):
-        global Mx, My
-        Mx, My = py.mouse.get_pos()
+    def Draw(self, Mx, My, Win: py.Surface):
         if self.x + self.width > Mx > self.x and self.y + self.height > My > self.y:
             py.draw.rect(Win, (78, 139, 237), (self.x, self.y, self.width, self.height))
         else:
@@ -25,8 +23,8 @@ class Button:
         py.draw.rect(Win, (255, 255, 255), (self.x, self.y, self.width, self.height), 4)
         Win.blit(self.TEXT, self._TEXT_POS_)
 
-    def Click(self):
-        return py.mouse.get_pressed()[0] and self.x + self.width > Mx > self.x and self.y + self.height > My > self.y
+    def Click(self, Mx, My, mouse):
+        return mouse[0] and self.x + self.width > Mx > self.x and self.y + self.height > My > self.y
 
 
 class Slider:
@@ -46,9 +44,7 @@ class Slider:
         py.draw.rect(Win, (255, 255, 255), (self.x, self.y, round(self.val / self.MaxVal * self.w), self.h))
         py.draw.rect(Win, (50, 50, 50), (self.x, self.y, self.w, self.h), 6)
 
-    def Move(self):
-        mouse = py.mouse.get_pressed()
-        Mx, My = py.mouse.get_pos()
+    def Move(self, Mx, My, mouse):
         if mouse[0] and self.x + self.w > Mx > self.x and self.y + self.h > My > self.y:
             self.val = (Mx - self.x) / self.w * self.MaxVal
             self.val = max(self.val, self.MinVal)
